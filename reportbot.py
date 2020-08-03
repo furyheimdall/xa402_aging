@@ -54,6 +54,23 @@ def removeFiles(files):
 	for targetFile in files:
 		os.remove(targetFile)
 
+def lineParse(line):
+	global timeCode
+	splitLine = line.split(':')
+	if len(splitLine) > 1:
+		if splitLine[0] == 'Current Time ':
+			timeCode=splitLine[1]+':'+splitLine[2]+':'+splitLine[3]
+		elif 'PID of package' in splitLine[0]:
+			crashHistory.append('[' + timeCode + '] ' + line)
+		
+def collectCrashHistory(inputFile):
+	crashHistory.clear()
+	with open(inputFile,encoding='UTF-8') as f:
+		fileContent = f.readlines()
+		fileContent = [x.strip() for x in fileContent]
+		for line in fileContent:
+			lineParse(line)
+	
 def handleTelegramChat(msg):
 	chat_id = msg['chat']['id']
 	command = msg['text']
@@ -70,6 +87,19 @@ def handleTelegramChat(msg):
 		ap.cleanup_plot()
 	elif '/getplotdata' in command :
 		bot.sendDocument(chat_id, document=open(plotDataPath, 'rb'))
+	elif '/crashhistory' in command :
+		collectCrashHistory(plotDataPath)
+		crashReporting=''
+		for crash in crashHistory:
+			crashReporting = crashReporting + '\n' + crash
+		if len(crashReporting) >= 4096:
+			f = open('./crashreporting.txt','w')
+			f.write(crashReporting)
+			f.close()
+			bot.sendDocument(chat_id, document=open('./crashreporting.txt', 'rb'))
+			os.remove('./crashreporting.txt')
+		else:
+			bot.sendMessage(chat_id, crashReporting)	
 	elif '/getlog' in command :
 		if logDataPath == '':
 			bot.sendMessage(chat_id, 'Log file was not given')
@@ -83,7 +113,7 @@ def handleTelegramChat(msg):
 			removeFiles(targetFiles)
 	else:
 		bot.sendMessage(chat_id, 'Unknown command')
-		bot.sendMessage(chat_id, '[Supported Cmds]\n/getplotimg : receive plot image\n /getplotdata : receive plot data in txt\n /getlog : receive log file')
+                bot.sendMessage(chat_id, '[Supported Cmds]\n/getplotimg : receive plot image\n /getplotdata : receive plot data in txt\n /getlog : receive log file\n /crashhistory : receive crash history log')
 
 def avoidPreviousMsgDuringShutdown():
 	updates = bot.getUpdates()
@@ -105,6 +135,8 @@ def entry(plotData, logData):
 bot=telepot.Bot(bot_token)
 plotDataPath='./mem.txt'
 logDataPath=''
+crashHistory=[]
+timeCode=''
 
 if __name__ == '__main__':
 	if bot_token == '':
