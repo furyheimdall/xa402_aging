@@ -113,7 +113,7 @@ def handleTelegramChat(msg):
 			removeFiles(targetFiles)
 	else:
 		bot.sendMessage(chat_id, 'Unknown command')
-                bot.sendMessage(chat_id, '[Supported Cmds]\n/getplotimg : receive plot image\n /getplotdata : receive plot data in txt\n /getlog : receive log file\n /crashhistory : receive crash history log')
+		bot.sendMessage(chat_id, '[Supported Cmds]\n/getplotimg : receive plot image\n /getplotdata : receive plot data in txt\n /getlog : receive log file\n /crashhistory : receive crash history log')
 
 def avoidPreviousMsgDuringShutdown():
 	updates = bot.getUpdates()
