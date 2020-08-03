@@ -41,8 +41,8 @@ def draw_plot():
 	define_chart[3] = [binderTotal, 'Binder Consumption (Total)', 'Time', 'The number of Binder', 'y']
 	
 	fig, axs = plt.subplots(len(define_chart), 1)
-	fig.set_figheight(10)
 	fig.set_figwidth(10)
+	fig.set_figheight(len(define_chart)*3)
 
 	for k in define_chart.keys():
 		setup_plot(plt, axs[k], define_chart[k][1], define_chart[k][2], define_chart[k][3], define_chart[k][4], define_chart[k][0])
