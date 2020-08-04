@@ -4,8 +4,11 @@ import os
 import sys
 import numpy as np
 import matplotlib
-if os.environ.get('DISPLAY','') == '':
-	print('no display found. Using non-interactive Agg backend')
+if __name__ == "__main__":
+	if os.environ.get('DISPLAY','') == '':
+		print('no display found. Using non-interactive Agg backend')
+		matplotlib.use('Agg')
+else:
 	matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from matplotlib.ticker import (MultipleLocator, FormatStrFormatter,AutoMinorLocator)
@@ -48,7 +51,8 @@ def draw_plot():
 		setup_plot(plt, axs[k], define_chart[k][1], define_chart[k][2], define_chart[k][3], define_chart[k][4], define_chart[k][0])
 	fig.tight_layout()
 	plt.savefig('graph.png', dpi=100)
-	plt.show()
+	if __name__ == "__main__":
+		plt.show()
 		
 def lineParse(line):
 	splitLine = line.split(':')
