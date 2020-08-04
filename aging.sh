@@ -96,9 +96,9 @@ fetching_memory() {
     done
 }
 
-echo "* killing adb..."
-adb kill-server
-sleep 2
+#echo "* killing adb..."
+#adb kill-server
+#sleep 2
 echo "* starting adb..."
 adb connect ${ip}
 sleep 1 && ${adb} root
