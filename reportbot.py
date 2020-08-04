@@ -7,6 +7,7 @@ import telepot
 import socket
 import zipfile
 import os
+import datetime
 import agingplot as ap
 
 ########################################
@@ -56,21 +57,46 @@ def removeFiles(files):
 
 def lineParse(line):
 	global timeCode
+	global agingInfo
+	global startTime
+	global endTime
 	splitLine = line.split(':')
 	if len(splitLine) > 1:
 		if splitLine[0] == 'Current Time ':
 			timeCode=splitLine[1]+':'+splitLine[2]+':'+splitLine[3]
+			if startTime=='':
+				startTime=timeCode
+			else:
+				endTime=timeCode
 		elif 'PID of package' in splitLine[0]:
 			crashHistory.append('[' + timeCode + '] ' + line)
+		elif 'S/W fingerprint' in splitLine[0]:
+			agingInfo = line + '\n'
+	elif len(splitLine) == 1:
+		if 'memory monitoring on' in line:
+			splitSubline = splitLine[0].split('monitoring on package ')
+			agingInfo = agingInfo + ' Monitoring package : ' + splitSubline[1] + '\n'
+			
 		
-def collectCrashHistory(inputFile):
+def collectInfo(inputFile):
+	global agingInfo
+	global startTime
+	global endTime
 	crashHistory.clear()
+	agingInfo=''
+	startTime=''
+	endTime=''
 	with open(inputFile,encoding='UTF-8') as f:
 		fileContent = f.readlines()
 		fileContent = [x.strip() for x in fileContent]
 		for line in fileContent:
 			lineParse(line)
-	
+
+	startTimeDt = datetime.datetime.strptime(startTime, ' %Y-%m-%d %H:%M:%S')
+	endTimeDt = datetime.datetime.strptime(endTime, ' %Y-%m-%d %H:%M:%S')
+	elapsedDt = endTimeDt-startTimeDt
+	agingInfo = agingInfo + 'Aging Period : ' + startTime + ' ~ ' + endTime + ' (elapsed : ' + str(elapsedDt) + ')'
+
 def handleTelegramChat(msg):
 	chat_id = msg['chat']['id']
 	command = msg['text']
@@ -88,7 +114,7 @@ def handleTelegramChat(msg):
 	elif '/getplotdata' in command :
 		bot.sendDocument(chat_id, document=open(plotDataPath, 'rb'))
 	elif '/crashhistory' in command :
-		collectCrashHistory(plotDataPath)
+		collectInfo(plotDataPath)
 		crashReporting=''
 		for crash in crashHistory:
 			crashReporting = crashReporting + '\n' + crash
@@ -111,9 +137,13 @@ def handleTelegramChat(msg):
 				bot.sendDocument(chat_id, document=open(sendFile, 'rb'))
 			bot.sendMessage(chat_id, 'send complete')
 			removeFiles(targetFiles)
+	elif '/aginginfo' in command:
+		collectInfo(plotDataPath)
+		global agingInfo
+		bot.sendMessage(chat_id, agingInfo)
 	else:
 		bot.sendMessage(chat_id, 'Unknown command')
-		bot.sendMessage(chat_id, '[Supported Cmds]\n/getplotimg : receive plot image\n /getplotdata : receive plot data in txt\n /getlog : receive log file\n /crashhistory : receive crash history log')
+		bot.sendMessage(chat_id, '[Supported CMDs]\n /aginginfo : aging information\n /getplotimg : receive plot image\n /getplotdata : receive plot data in txt\n /getlog : receive log file\n /crashhistory : receive crash history log')
 
 def avoidPreviousMsgDuringShutdown():
 	updates = bot.getUpdates()
@@ -137,6 +167,10 @@ plotDataPath='./mem.txt'
 logDataPath=''
 crashHistory=[]
 timeCode=''
+agingInfo=''
+startTime=''
+endTime=''
+
 
 if __name__ == '__main__':
 	if bot_token == '':
@@ -147,4 +181,7 @@ if __name__ == '__main__':
 		entry(sys.argv[1], '')
 	else:
 		print("Usage : python reportbot.py [memfile] [logfile]")
-	
+		
+'''
+entry('example_memlog.txt','')
+'''
