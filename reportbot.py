@@ -10,11 +10,6 @@ import os
 import datetime
 import agingplot as ap
 
-########################################
-# Please fill bot token here first
-bot_token=''
-########################################
-
 def maySplitFile(zipFile):
 	files=[]
 	memoryBuf=1024*1024*1024 # 1000MB
@@ -155,18 +150,23 @@ def avoidPreviousMsgDuringShutdown():
 	    last_update_id = updates[-1]['update_id']
 	    bot.getUpdates(offset=last_update_id+1)
 	
-def entry(plotData, logData):
+def entry(botToken, plotData, logData):
 	global plotDataPath
 	global logDataPath
+	global bot
+	if botToken == '':
+		print("Please fill bot token here first in the reportbot.py")
+		return	
 	plotDataPath = plotData
-	logDataPath = logData
+	logDataPath = logData	
+	bot = telepot.Bot(botToken)
 	avoidPreviousMsgDuringShutdown()
 	bot.message_loop(handleTelegramChat)
 	print('>>>>>>  Connected telegram bot : ' + bot.getMe()['first_name'])
 	while True:
 		time.sleep(10)
 
-bot=telepot.Bot(bot_token)
+bot=''
 plotDataPath='./mem.txt'
 logDataPath=''
 crashHistory=[]
@@ -177,15 +177,17 @@ endTime=''
 agingTitle=''
 
 if __name__ == '__main__':
-	if bot_token == '':
-		print("Please fill bot token here first in the reportbot.py")
+	if len(sys.argv) >= 4:
+		entry(sys.argv[1], sys.argv[2], sys.argv[3])
 	elif len(sys.argv) >= 3:
-		entry(sys.argv[1], sys.argv[2])
-	elif len(sys.argv) >= 2:
-		entry(sys.argv[1], '')
+		entry(sys.argv[1], sys.argv[2], '')
 	else:
-		print("Usage : python reportbot.py [memfile] [logfile]")
+		print("Usage : python reportbot.py [botToken] [memfile] [logfile]")
 		
 '''
-entry('example_memlog.txt','')
+########################################
+bot_token=''
+########################################
+
+entry(bot_token, 'example_memlog.txt','')
 '''

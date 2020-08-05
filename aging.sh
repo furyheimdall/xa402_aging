@@ -1,6 +1,7 @@
 #!/bin/bash
 
 #default configuration
+bot_token=""
 title="Unnamed Aging"
 ip="192.168.2.166"
 time=`date "+%Y%m%d%H%M"`;
@@ -18,6 +19,19 @@ update_config() {
     adb="adb -s ${ip}:5555"
     prefix="${adb} shell"    
 }
+
+# execute secnario
+do_exec() {
+    #scenario
+    #scenario_nothingtodo
+    #scenario_exo_leak
+    #scenario_test
+    scenario_rec_play
+}
+
+
+###################################################################################################
+
 
 scenario_nothingtodo() {
     echo "aging on progress..."
@@ -105,8 +119,9 @@ fetching_memory() {
 
 print_usage() {
     echo "Usage:"
-    echo "./aging.sh [-i IP] [-t AGING_TITLE] [-m MONITORING_PACKAGE] [-s MONITORING_INTERVAL]"
+    echo "./aging.sh [-b BOT_TOKEN] [-i IP] [-t AGING_TITLE] [-m MONITORING_PACKAGE] [-s MONITORING_INTERVAL]"
     echo "    if there is no option, script will use default value"
+    echo "    Deafult Bot : ${bot_token}"
     echo "    Default IP : ${ip}"
     echo "    Default Title : ${title}"
     echo "    Default Package : ${memory_monitoring_package}"
@@ -118,6 +133,10 @@ while (( "$#" )); do
         -h|--help)
             print_usage
             exit 0
+            ;;
+        -b|--bot)
+            bot_token=$2
+            shift 2
             ;;
         -t|--title)
             title=$2
@@ -170,17 +189,21 @@ logcat_module_pid=$!
 fetching_memory & 
 memory_monitor_pid=$!
 
+if [ ! -z ${bot_token} ]; then
+    python3 reportbot.py ${bot_token} ${mem_target} ${logcat_target} &
+    bot_pid=$!
+else
+    echo "* Bot token was not given. Start aging without bot"
+fi
+
 sleep 2;
 
 echo "* LOGCAT monitor PID = ${logcat_module_pid}"
 echo "* Memory monitor PID = ${memory_monitor_pid}"
+echo "* Start to reporting bot = ${bot_pid}"
 echo "* Aging Started >>> ${title} <<< "
-trap "kill ${logcat_module_pid} ${memory_monitor_pid}; echo 'related process will be cleaned up';exit 0" INT TERM QUIT
+trap "kill ${logcat_module_pid} ${memory_monitor_pid} ${bot_pid}; echo 'related process will be cleaned up';exit 0" INT TERM QUIT
 while [ 1 ]
 do
-    #scenario
-    #scenario_nothingtodo
-    #scenario_exo_leak
-    #scenario_test
-    scenario_rec_play
+    do_exec
 done
