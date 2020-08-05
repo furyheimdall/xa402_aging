@@ -1,17 +1,23 @@
-#!/bin/sh
+#!/bin/bash
 
-#conf
+#default configuration
+title="Unnamed Aging"
 ip="192.168.2.166"
+time=`date "+%Y%m%d%H%M"`;
 memory_fetching_interval=10     #sec
 memory_monitoring_package="com.humaxdigital.corona.tvinput.jcom"
 #memory_monitoring_package="com.humaxdigital.alps.demo.player"
 #memory_monitoring_package="com.google.android.exoplayer2.demo"
 
-adb="adb -s ${ip}:5555"
-prefix="${adb} shell"
-time=`date "+%Y%m%d%H%M"`;
+adb=
+prefix=
 logcat_module_pid=
 memory_monitor_pid=
+
+update_config() {
+    adb="adb -s ${ip}:5555"
+    prefix="${adb} shell"    
+}
 
 scenario_nothingtodo() {
     echo "aging on progress..."
@@ -71,6 +77,7 @@ scenario_rec_play() {
 
 fetching_memory() {
     echo "* starting memory monitor... >> ${memory_monitoring_package}"
+    echo "Aging Name : ${title}" >> ${mem_target}
     echo "S/W fingerprint : ${fingerprint}" >> ${mem_target}
     echo "memory monitoring on package ${memory_monitoring_package}" >> ${mem_target}
     echo "" >> ${mem_target}
@@ -96,9 +103,51 @@ fetching_memory() {
     done
 }
 
-#echo "* killing adb..."
-#adb kill-server
-#sleep 2
+print_usage() {
+    echo "Usage:"
+    echo "./aging.sh [-i IP] [-t AGING_TITLE] [-m MONITORING_PACKAGE] [-s MONITORING_INTERVAL]"
+    echo "    if there is no option, script will use default value"
+    echo "    Default IP : ${ip}"
+    echo "    Default Title : ${title}"
+    echo "    Default Package : ${memory_monitoring_package}"
+    echo "    Default Interval in sec : ${memory_fetching_interval}"
+}
+
+while (( "$#" )); do
+    case "$1" in
+        -h|--help)
+            print_usage
+            exit 0
+            ;;
+        -t|--title)
+            title=$2
+            shift 2
+            ;;
+        -i|--ip)
+            ip=$2
+            shift 2
+            ;;
+        -m|--monitoring)
+            memory_monitoring_package=$2
+            shift 2
+            ;;
+        -s|--sec)
+            memory_fetching_interval=$2
+            shift 2
+            ;;
+        *)
+            echo "Unsupported option $1" >&2
+            print_usage
+            exit 1
+            ;;
+    esac
+done
+
+update_config
+
+echo "* disconnect adb..."
+adb disconnect ${ip}
+sleep 2
 echo "* starting adb..."
 adb connect ${ip}
 sleep 1 && ${adb} root
@@ -125,6 +174,7 @@ sleep 2;
 
 echo "* LOGCAT monitor PID = ${logcat_module_pid}"
 echo "* Memory monitor PID = ${memory_monitor_pid}"
+echo "* Aging Started >>> ${title} <<< "
 trap "kill ${logcat_module_pid} ${memory_monitor_pid}; echo 'related process will be cleaned up';exit 0" INT TERM QUIT
 while [ 1 ]
 do

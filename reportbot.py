@@ -60,6 +60,7 @@ def lineParse(line):
 	global agingInfo
 	global startTime
 	global endTime
+	global agingTitle
 	splitLine = line.split(':')
 	if len(splitLine) > 1:
 		if splitLine[0] == 'Current Time ':
@@ -71,17 +72,20 @@ def lineParse(line):
 		elif 'PID of package' in splitLine[0]:
 			crashHistory.append('[' + timeCode + '] ' + line)
 		elif 'S/W fingerprint' in splitLine[0]:
-			agingInfo = line + '\n'
+			agingInfo = '* ' + line + '\n'
+		elif 'Aging Name' in splitLine[0]:
+			agingTitle = '* Current Aging Title :' + splitLine[1] + '\n'
 	elif len(splitLine) == 1:
 		if 'memory monitoring on' in line:
 			splitSubline = splitLine[0].split('monitoring on package ')
-			agingInfo = agingInfo + ' Monitoring package : ' + splitSubline[1] + '\n'
+			agingInfo = agingInfo + '* Monitoring package : ' + splitSubline[1] + '\n'
 			
 		
 def collectInfo(inputFile):
 	global agingInfo
 	global startTime
 	global endTime
+	global agingTitle
 	crashHistory.clear()
 	agingInfo=''
 	startTime=''
@@ -95,7 +99,7 @@ def collectInfo(inputFile):
 	startTimeDt = datetime.datetime.strptime(startTime, ' %Y-%m-%d %H:%M:%S')
 	endTimeDt = datetime.datetime.strptime(endTime, ' %Y-%m-%d %H:%M:%S')
 	elapsedDt = endTimeDt-startTimeDt
-	agingInfo = agingInfo + 'Aging Period : ' + startTime + ' ~ ' + endTime + ' (elapsed : ' + str(elapsedDt) + ')'
+	agingInfo = agingTitle + agingInfo + '* Aging Period : ' + startTime + ' ~ ' + endTime + ' (elapsed : ' + str(elapsedDt) + ')'
 
 def handleTelegramChat(msg):
 	chat_id = msg['chat']['id']
@@ -170,7 +174,7 @@ timeCode=''
 agingInfo=''
 startTime=''
 endTime=''
-
+agingTitle=''
 
 if __name__ == '__main__':
 	if bot_token == '':
