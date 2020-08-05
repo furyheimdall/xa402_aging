@@ -40,9 +40,9 @@ def draw_plot():
 	# [data, title_name, x-axis name, y-axis name, line color]
 	define_chart[0] = [javaHeap, 'Memory consumption (JAVA)', 'Time', 'Heap(KB)', 'r']
 	define_chart[1] = [nativeHeap, 'Memory consumption (Native)', 'Time', 'Heap(KB)', 'b']
-	define_chart[2] = [binderSystem, 'Binder Consumption (System)', 'Time', 'The number of Binder', 'g']
-	define_chart[3] = [binderTotal, 'Binder Consumption (Total)', 'Time', 'The number of Binder', 'y']
-	
+	define_chart[2] = [binderSystem, 'Binder consumption (System)', 'Time', 'The number of Binder', 'g']
+	define_chart[3] = [binderTotal, 'Binder consumption (Total)', 'Time', 'The number of Binder', 'y']
+	define_chart[4] = [logdHeap, 'LogD NativeHeap consumption', 'Time', 'Heap(KB)', 'gray']
 	fig, axs = plt.subplots(len(define_chart), 1)
 	fig.set_figwidth(10)
 	fig.set_figheight(len(define_chart)*3)
@@ -65,12 +65,15 @@ def lineParse(line):
 			binderTotal.append(int(splitLine[1]))
 		if splitLine[0] == 'Binder related to system server ':
 			binderSystem.append(int(splitLine[1]))
+		if splitLine[0] == 'Logd NatvHeap':
+			logdHeap.append(int(splitLine[1]))
 
 def readFile(inputFile):
 	javaHeap.clear()
 	nativeHeap.clear()
 	binderTotal.clear()
 	binderSystem.clear()
+	logdHeap.clear()
 	with open(inputFile,encoding='UTF-8') as f:
 		fileContent = f.readlines()
 		fileContent = [x.strip() for x in fileContent]
@@ -91,7 +94,7 @@ nativeHeap=[]
 javaHeap=[]
 binderTotal=[]
 binderSystem=[]
-
+logdHeap=[]
 
 
 '''

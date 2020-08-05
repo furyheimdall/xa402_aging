@@ -111,7 +111,8 @@ fetching_memory() {
         ${prefix} dumpsys meminfo ${memory_monitoring_package} | grep "Native Heap:" >> ${mem_target}
         ${prefix} cat /sys/kernel/debug/binder/proc/${check_pid} | grep node | wc -l | xargs echo "         Binder total : " >> ${mem_target}
         ${prefix} cat /sys/kernel/debug/binder/proc/${check_pid} | grep ${system_server_pid} | wc -l | xargs echo "         Binder related to system server : " >> ${mem_target}
-
+        logd_mem=$(${prefix} dumpsys meminfo logd | grep "Native Heap:" | cut -c 25-)
+        echo "Logd NatvHeap:${logd_mem}" >> ${mem_target}
         echo "" >> ${mem_target}
         sleep ${memory_fetching_interval};
     done
