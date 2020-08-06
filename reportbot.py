@@ -162,8 +162,8 @@ def entry(botToken, plotData, logData):
 	global bot
 	if botToken == '':
 		print("Please fill bot token here first in the reportbot.py")
-		return	
-	os.makedirs('./downloads')
+		return
+	os.makedirs('./downloads', exist_ok=True)
 	plotDataPath = plotData
 	logDataPath = logData	
 	bot = telepot.Bot(botToken)
