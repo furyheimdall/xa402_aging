@@ -97,53 +97,59 @@ def collectInfo(inputFile):
 	agingInfo = agingTitle + agingInfo + '* Aging Period : ' + startTime + ' ~ ' + endTime + ' (elapsed : ' + str(elapsedDt) + ')'
 
 def handleTelegramChat(msg):
-	chat_id = msg['chat']['id']
-	command = msg['text']
+	content_type, chat_type, chat_id = telepot.glance(msg)
 	
-	print ('Got command : ' + command + ' from ' + msg['chat']['first_name'] + '(' + str(chat_id) + ')')
-	
-	if '/chatid' in command :
-		bot.sendMessage(chat_id, 'Current your chat ID is ' + str(chat_id))
-	elif '/getplotimg' in command :
-		bot.sendMessage(chat_id, 'Host name (' + socket.gethostname() + ') plotting from ' + plotDataPath)
-		ap.generate_plot(plotDataPath)
-		bot.sendPhoto(chat_id, photo=open('./graph.png','rb'))
-		os.remove('./graph.png')
-		ap.cleanup_plot()
-	elif '/getplotdata' in command :
-		bot.sendDocument(chat_id, document=open(plotDataPath, 'rb'))
-	elif '/crashhistory' in command :
-		collectInfo(plotDataPath)
-		crashReporting=''
-		for crash in crashHistory:
-			crashReporting = crashReporting + '\n' + crash
-		if len(crashReporting) >= 4096:
-			f = open('./crashreporting.txt','w')
-			f.write(crashReporting)
-			f.close()
-			bot.sendDocument(chat_id, document=open('./crashreporting.txt', 'rb'))
-			os.remove('./crashreporting.txt')
+	if content_type == 'text':	
+		command = msg['text']	
+		print ('Got command : ' + command + ' from ' + msg['chat']['first_name'] + '(' + str(chat_id) + ')')
+		if '/chatid' in command :
+			bot.sendMessage(chat_id, 'Current your chat ID is ' + str(chat_id))
+		elif '/getplotimg' in command :
+			bot.sendMessage(chat_id, 'Host name (' + socket.gethostname() + ') plotting from ' + plotDataPath)
+			ap.generate_plot(plotDataPath)
+			bot.sendPhoto(chat_id, photo=open('./graph.png','rb'))
+			os.remove('./graph.png')
+			ap.cleanup_plot()
+		elif '/getplotdata' in command :
+			bot.sendDocument(chat_id, document=open(plotDataPath, 'rb'))
+		elif '/crashhistory' in command :
+			collectInfo(plotDataPath)
+			crashReporting=''
+			for crash in crashHistory:
+				crashReporting = crashReporting + '\n' + crash
+			if len(crashReporting) >= 4096:
+				f = open('./crashreporting.txt','w')
+				f.write(crashReporting)
+				f.close()
+				bot.sendDocument(chat_id, document=open('./crashreporting.txt', 'rb'))
+				os.remove('./crashreporting.txt')
+			else:
+				bot.sendMessage(chat_id, crashReporting)	
+		elif '/getlog' in command :
+			if logDataPath == '':
+				bot.sendMessage(chat_id, 'Log file was not given')
+			else :
+				bot.sendMessage(chat_id, 'preparing logdata...')
+				targetFiles=maySplitFile(compress(logDataPath))
+				bot.sendMessage(chat_id, 'you will receive total ' + str(len(targetFiles)) + ' files === sending...')
+				for sendFile in targetFiles:
+					bot.sendDocument(chat_id, document=open(sendFile, 'rb'))
+				bot.sendMessage(chat_id, 'send complete')
+				removeFiles(targetFiles)
+		elif '/aginginfo' in command:
+			collectInfo(plotDataPath)
+			global agingInfo
+			bot.sendMessage(chat_id, agingInfo)
 		else:
-			bot.sendMessage(chat_id, crashReporting)	
-	elif '/getlog' in command :
-		if logDataPath == '':
-			bot.sendMessage(chat_id, 'Log file was not given')
-		else :
-			bot.sendMessage(chat_id, 'preparing logdata...')
-			targetFiles=maySplitFile(compress(logDataPath))
-			bot.sendMessage(chat_id, 'you will receive total ' + str(len(targetFiles)) + ' files === sending...')
-			for sendFile in targetFiles:
-				bot.sendDocument(chat_id, document=open(sendFile, 'rb'))
-			bot.sendMessage(chat_id, 'send complete')
-			removeFiles(targetFiles)
-	elif '/aginginfo' in command:
-		collectInfo(plotDataPath)
-		global agingInfo
-		bot.sendMessage(chat_id, agingInfo)
-	else:
-		bot.sendMessage(chat_id, 'Unknown command')
-		bot.sendMessage(chat_id, '[Supported CMDs]\n /aginginfo : aging information\n /getplotimg : receive plot image\n /getplotdata : receive plot data in txt\n /getlog : receive log file\n /crashhistory : receive crash history log')
-
+			bot.sendMessage(chat_id, 'Unknown command')
+			bot.sendMessage(chat_id, '[Supported CMDs]\n /aginginfo : aging information\n /getplotimg : receive plot image\n /getplotdata : receive plot data in txt\n /getlog : receive log file\n /crashhistory : receive crash history log')
+	elif content_type == 'document':
+		fileId = msg['document']['file_id']
+		fileName = msg['document']['file_name']
+		bot.download_file(fileId, './downloads/' + fileName)
+		print ('Got file : ' + fileId + ' from ' + msg['chat']['first_name'] + '(' + str(chat_id) + ')')
+		bot.sendMessage(chat_id, "Download complete")
+		
 def avoidPreviousMsgDuringShutdown():
 	updates = bot.getUpdates()
 	if updates:
@@ -157,6 +163,7 @@ def entry(botToken, plotData, logData):
 	if botToken == '':
 		print("Please fill bot token here first in the reportbot.py")
 		return	
+	os.makedirs('./downloads')
 	plotDataPath = plotData
 	logDataPath = logData	
 	bot = telepot.Bot(botToken)
