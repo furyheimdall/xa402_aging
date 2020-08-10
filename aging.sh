@@ -26,7 +26,8 @@ do_exec() {
     #scenario_nothingtodo
     #scenario_exo_leak
     #scenario_test
-    scenario_rec_play
+    #scenario_rec_play
+    scenario_rec_play2
 }
 
 
@@ -87,6 +88,19 @@ scenario_rec_play() {
     sleep 5;
     ${prefix} input keyevent HOME
     sleep 8;
+}
+
+scenario_rec_play2() {
+    input keyevent KEYCODE_DPAD_CENTER 
+    sleep 1
+    input keyevent KEYCODE_DPAD_RIGHT
+    sleep 1
+    echo "REC Play Start"
+    input keyevent KEYCODE_DPAD_CENTER
+    sleep 3
+    echo "REC Play Stop"
+    input keyevent KEYCODE_BACK
+    sleep 1
 }
 
 fetching_memory() {
@@ -204,7 +218,11 @@ echo "* Memory monitor PID = ${memory_monitor_pid}"
 echo "* Start to reporting bot = ${bot_pid}"
 echo "* Aging Started >>> ${title} <<< "
 trap "kill ${logcat_module_pid} ${memory_monitor_pid} ${bot_pid}; echo 'related process will be cleaned up';exit 0" INT TERM QUIT
+
+count=0
 while [ 1 ]
 do
+    count=$(($count+1))
+    echo "Execution Aging Scenario : Count ($count)"
     do_exec
 done
