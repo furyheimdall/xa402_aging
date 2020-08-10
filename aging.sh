@@ -91,15 +91,15 @@ scenario_rec_play() {
 }
 
 scenario_rec_play2() {
-    input keyevent KEYCODE_DPAD_CENTER 
+    ${prefix} input keyevent KEYCODE_DPAD_CENTER 
     sleep 1
-    input keyevent KEYCODE_DPAD_RIGHT
+    ${prefix} input keyevent KEYCODE_DPAD_RIGHT
     sleep 1
     echo "REC Play Start"
-    input keyevent KEYCODE_DPAD_CENTER
+    ${prefix} input keyevent KEYCODE_DPAD_CENTER
     sleep 3
     echo "REC Play Stop"
-    input keyevent KEYCODE_BACK
+    ${prefix} input keyevent KEYCODE_BACK
     sleep 1
 }
 
