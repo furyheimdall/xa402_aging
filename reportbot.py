@@ -8,6 +8,7 @@ import socket
 import zipfile
 import os
 import datetime
+import subprocess
 import agingplot as ap
 
 def maySplitFile(zipFile):
@@ -112,7 +113,7 @@ def handleTelegramChat(msg):
 			ap.cleanup_plot()
 		elif '/getplotdata' in command :
 			bot.sendDocument(chat_id, document=open(plotDataPath, 'rb'))
-		elif '/crashhistory' in command :
+		elif '/getcrashhistory' in command :
 			collectInfo(plotDataPath)
 			crashReporting=''
 			for crash in crashHistory:
@@ -125,6 +126,21 @@ def handleTelegramChat(msg):
 				os.remove('./crashreporting.txt')
 			else:
 				bot.sendMessage(chat_id, crashReporting)	
+		elif '/getcrashlog' in command :
+			bot.sendMessage(chat_id, 'This command could take long time')
+			cmd = ['egrep', '-n25', 'FATAL',  logDataPath]
+			fd_popen = subprocess.Popen(cmd, stdout=subprocess.PIPE, universal_newlines=True).stdout
+			crashLog = fd_popen.read().strip()
+			fd_popen.close()
+			f = open('./crashlog.txt','w')
+			f.write(crashLog)
+			f.close()
+			try:
+				bot.sendDocument(chat_id, document=open('./crashlog.txt','rb'))
+			except telepot.exception.TelegramError as terr:
+				if 'non-empty' in terr.description:
+					bot.sendMessage(chat_id, 'There are no crash logs currently')	
+			os.remove('./crashlog.txt')
 		elif '/getlog' in command :
 			if logDataPath == '':
 				bot.sendMessage(chat_id, 'Log file was not given')
@@ -142,7 +158,7 @@ def handleTelegramChat(msg):
 			bot.sendMessage(chat_id, agingInfo)
 		else:
 			bot.sendMessage(chat_id, 'Unknown command')
-			bot.sendMessage(chat_id, '[Supported CMDs]\n /aginginfo : aging information\n /getplotimg : receive plot image\n /getplotdata : receive plot data in txt\n /getlog : receive log file\n /crashhistory : receive crash history log')
+			bot.sendMessage(chat_id, '[Supported CMDs]\n /aginginfo : to get aging information\n /getplotimg : to receive plot image\n /getplotdata : to receive plot data in txt\n /getlog : to receive log file\n /getcrashhistory : to receive crash history log\n /getcrashlog : to receive crash log in detail')
 	elif content_type == 'document':
 		fileId = msg['document']['file_id']
 		fileName = msg['document']['file_name']
