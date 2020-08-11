@@ -97,6 +97,15 @@ def collectInfo(inputFile):
 	elapsedDt = endTimeDt-startTimeDt
 	agingInfo = agingTitle + agingInfo + '* Aging Period : ' + startTime + ' ~ ' + endTime + ' (elapsed : ' + str(elapsedDt) + ')'
 
+def searchStringFromShell(command, save):
+	fd_popen = subprocess.Popen(command, stdout=subprocess.PIPE, universal_newlines=True).stdout
+	log = fd_popen.read().strip()
+	fd_popen.close()
+	f = open(save, 'w')
+	f.write(log)
+	f.close()
+	return len(log)
+
 def handleTelegramChat(msg):
 	content_type, chat_type, chat_id = telepot.glance(msg)
 	
@@ -129,18 +138,37 @@ def handleTelegramChat(msg):
 		elif '/getcrashlog' in command :
 			bot.sendMessage(chat_id, 'This command could take long time')
 			cmd = ['egrep', '-n25', 'FATAL',  logDataPath]
-			fd_popen = subprocess.Popen(cmd, stdout=subprocess.PIPE, universal_newlines=True).stdout
-			crashLog = fd_popen.read().strip()
-			fd_popen.close()
-			f = open('./crashlog.txt','w')
-			f.write(crashLog)
-			f.close()
+			searchStringFromShell(cmd, './crashlog.txt')
 			try:
 				bot.sendDocument(chat_id, document=open('./crashlog.txt','rb'))
 			except telepot.exception.TelegramError as terr:
 				if 'non-empty' in terr.description:
 					bot.sendMessage(chat_id, 'There are no crash logs currently')	
 			os.remove('./crashlog.txt')
+		elif '/getsuspicious' in command :
+			bot.sendMessage(chat_id, 'This command could take long time')
+			cmd = ['egrep', '-n', 'AudioFlinger could not create', logDataPath]
+			szAudioFlinger = searchStringFromShell(cmd, './audioflinger.txt')
+			cmd = ['egrep', '-n', 'no video decoders available', logDataPath]
+			szNoVideoDec = searchStringFromShell(cmd, './novideodecoder.txt')
+			try:
+				if szAudioFlinger > 49 * 1024 * 1024:
+					bot.sendMessage(chat_id, 'AudioFlinger suspicous log is too big')
+				else :
+					bot.sendDocument(chat_id, document=open('./audioflinger.txt','rb'))
+			except telepot.exception.TelegramError as terr:
+				if 'non-empty' in terr.description:
+					bot.sendMessage(chat_id, 'There are no audio suspicious logs currently')
+			try:
+				if szNoVideoDec > 49 * 1024 * 1024:
+					bot.sendMessage(chat_id, 'No video decoder suspicous log is too big')
+				else :
+					bot.sendDocument(chat_id, document=open('./novideodecoder.txt','rb'))
+			except telepot.exception.TelegramError as terr:
+				if 'non-empty' in terr.description:
+					bot.sendMessage(chat_id, 'There are no video suspicious logs currently')
+			os.remove('./audioflinger.txt')
+			os.remove('./novideodecoder.txt')
 		elif '/getlog' in command :
 			if logDataPath == '':
 				bot.sendMessage(chat_id, 'Log file was not given')
@@ -158,7 +186,7 @@ def handleTelegramChat(msg):
 			bot.sendMessage(chat_id, agingInfo)
 		else:
 			bot.sendMessage(chat_id, 'Unknown command')
-			bot.sendMessage(chat_id, '[Supported CMDs]\n /aginginfo : to get aging information\n /getplotimg : to receive plot image\n /getplotdata : to receive plot data in txt\n /getlog : to receive log file\n /getcrashhistory : to receive crash history log\n /getcrashlog : to receive crash log in detail')
+			bot.sendMessage(chat_id, '[Supported CMDs]\n /aginginfo : to get aging information\n /getplotimg : to receive plot image\n /getplotdata : to receive plot data in txt\n /getlog : to receive log file\n /getcrashhistory : to receive crash history log\n /getcrashlog : to receive crash log in detail\n /getsuspicious : to receive suspicious log such that audio flinger could not create track')
 	elif content_type == 'document':
 		fileId = msg['document']['file_id']
 		fileName = msg['document']['file_name']
