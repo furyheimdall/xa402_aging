@@ -57,6 +57,8 @@ def lineParse(line):
 	global startTime
 	global endTime
 	global agingTitle
+	global agingRunningOn
+	global agingPath
 	splitLine = line.split(':')
 	if len(splitLine) > 1:
 		if splitLine[0] == 'Current Time ':
@@ -71,6 +73,10 @@ def lineParse(line):
 			agingInfo = '* ' + line + '\n'
 		elif 'Aging Name' in splitLine[0]:
 			agingTitle = '* Current Aging Title :' + splitLine[1] + '\n'
+		elif 'Running on' in splitLine[0]:
+			agingRunningOn = '* Host : ' + splitLine[1] + '\n'
+		elif 'Aging Path' in splitLine[0]:
+			agingPath = '* Path : ' + splitLine[1] + '\n'
 	elif len(splitLine) == 1:
 		if 'memory monitoring on' in line:
 			splitSubline = splitLine[0].split('monitoring on package ')
@@ -82,6 +88,8 @@ def collectInfo(inputFile):
 	global startTime
 	global endTime
 	global agingTitle
+	global agingRunningOn
+	global agingPath
 	crashHistory.clear()
 	agingInfo=''
 	startTime=''
@@ -95,7 +103,7 @@ def collectInfo(inputFile):
 	startTimeDt = datetime.datetime.strptime(startTime, ' %Y-%m-%d %H:%M:%S')
 	endTimeDt = datetime.datetime.strptime(endTime, ' %Y-%m-%d %H:%M:%S')
 	elapsedDt = endTimeDt-startTimeDt
-	agingInfo = agingTitle + agingInfo + '* Aging Period : ' + startTime + ' ~ ' + endTime + ' (elapsed : ' + str(elapsedDt) + ')'
+	agingInfo = agingTitle + agingRunningOn + agingPath + agingInfo + '* Aging Period : ' + startTime + ' ~ ' + endTime + ' (elapsed : ' + str(elapsedDt) + ')'
 
 def searchStringFromShell(command, save):
 	fd_popen = subprocess.Popen(command, stdout=subprocess.PIPE, universal_newlines=True).stdout
@@ -226,6 +234,8 @@ agingInfo=''
 startTime=''
 endTime=''
 agingTitle=''
+agingRunningOn=''
+agingPath=''
 
 if __name__ == '__main__':
 	if len(sys.argv) >= 4:
