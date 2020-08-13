@@ -145,7 +145,7 @@ def handleTelegramChat(msg):
 				bot.sendMessage(chat_id, crashReporting)	
 		elif '/getcrashlog' in command :
 			bot.sendMessage(chat_id, 'This command could take long time')
-			cmd = ['egrep', '-n25', 'beginning of crash',  logDataPath]
+			cmd = ['egrep', '-n25', '"beginning of crash|FATAL"',  logDataPath]
 			searchStringFromShell(cmd, './crashlog.txt')
 			try:
 				bot.sendDocument(chat_id, document=open('./crashlog.txt','rb'))
