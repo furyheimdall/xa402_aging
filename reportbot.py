@@ -155,28 +155,17 @@ def handleTelegramChat(msg):
 			os.remove('./crashlog.txt')
 		elif '/getsuspicious' in command :
 			bot.sendMessage(chat_id, 'This command could take long time')
-			cmd = ['egrep', '-n', 'AudioFlinger could not create', logDataPath]
-			szAudioFlinger = searchStringFromShell(cmd, './audioflinger.txt')
-			cmd = ['egrep', '-n', 'no video decoders available', logDataPath]
-			szNoVideoDec = searchStringFromShell(cmd, './novideodecoder.txt')
+			cmd = ['egrep', '-n', '"AudioFlinger could not create|no video decoders available"', logDataPath]
+			szOutput = searchStringFromShell(cmd, './suspicious.txt')
 			try:
-				if szAudioFlinger > 49 * 1024 * 1024:
-					bot.sendMessage(chat_id, 'AudioFlinger suspicous log is too big')
+				if szOutput > 49 * 1024 * 1024:
+					bot.sendMessage(chat_id, 'suspicous log is too big')
 				else :
-					bot.sendDocument(chat_id, document=open('./audioflinger.txt','rb'))
+					bot.sendDocument(chat_id, document=open('./suspicious.txt','rb'))
 			except telepot.exception.TelegramError as terr:
 				if 'non-empty' in terr.description:
-					bot.sendMessage(chat_id, 'There are no audio suspicious logs currently')
-			try:
-				if szNoVideoDec > 49 * 1024 * 1024:
-					bot.sendMessage(chat_id, 'No video decoder suspicous log is too big')
-				else :
-					bot.sendDocument(chat_id, document=open('./novideodecoder.txt','rb'))
-			except telepot.exception.TelegramError as terr:
-				if 'non-empty' in terr.description:
-					bot.sendMessage(chat_id, 'There are no video suspicious logs currently')
-			os.remove('./audioflinger.txt')
-			os.remove('./novideodecoder.txt')
+					bot.sendMessage(chat_id, 'There are no suspicious logs currently')
+			os.remove('./suspicious.txt')
 		elif '/getlog' in command :
 			if logDataPath == '':
 				bot.sendMessage(chat_id, 'Log file was not given')
