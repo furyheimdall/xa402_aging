@@ -145,7 +145,7 @@ def handleTelegramChat(msg):
 				bot.sendMessage(chat_id, crashReporting)	
 		elif '/getcrashlog' in command :
 			bot.sendMessage(chat_id, 'This command could take long time')
-			cmd = ['egrep', '-n25', '"beginning of crash|FATAL"',  logDataPath]
+			cmd = ['egrep', '-n25', 'beginning of crash|FATAL',  logDataPath]
 			searchStringFromShell(cmd, './crashlog.txt')
 			try:
 				bot.sendDocument(chat_id, document=open('./crashlog.txt','rb'))
@@ -155,7 +155,7 @@ def handleTelegramChat(msg):
 			os.remove('./crashlog.txt')
 		elif '/getsuspicious' in command :
 			bot.sendMessage(chat_id, 'This command could take long time')
-			cmd = ['egrep', '-n', '"AudioFlinger could not create|no video decoders available"', logDataPath]
+			cmd = ['egrep', '-n', 'AudioFlinger could not create|no video decoders available', logDataPath]
 			szOutput = searchStringFromShell(cmd, './suspicious.txt')
 			try:
 				if szOutput > 49 * 1024 * 1024:
