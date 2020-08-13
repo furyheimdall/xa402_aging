@@ -1,0 +1,31 @@
+HOWTO
+
+
+(1) Just execute aging.sh according to manual
+
+    ./aging.sh --help
+    Usage:
+    ./aging.sh [-b BOT_TOKEN] [-i IP] [-t AGING_TITLE] [-m MONITORING_PACKAGE] [-s MONITORING_INTERVAL]
+        if there is no option, script will use default value
+        Deafult Bot : 
+        Default IP : 192.168.2.166
+        Default Title : Unnamed Aging
+        Default Package : com.humaxdigital.corona.tvinput.jcom
+        Default Interval in sec : 10
+
+    [example] ./aging.sh -b $(cat token) -i 192.168.11.19 -t "My own aging on local server"
+
+    * If -b option is not given, reporting bot will not work. Aging script will do only aging scenario and write result files.
+    * You can omit -i, -t, -m, -s option if you edit default value in aging.sh
+    * If you want to receive report via telegram, you need to install below
+         - Python 3.4 or above version
+         - Python packages : numpy, matplotlib and telepot
+
+(2) If you want to execute reporting bot using existing aging output files such as memlog and logcat file without executing aging script, you can do it as below
+    * python3 reportbot.py [bot_token] [memlog] [logcat(can be omit)]
+    [example] python3 reportbot.py $(cat token) 20200805_151000_XA402_memlog.txt 20200805_151000_XA402_logcat.txt
+
+(3) If you want to get usage graph of memory or any other system resource that is from memlog.txt file, you can simply get it using agingplot.py. It will generate graph.png file on the same path.
+    * python3 agingplot.py [memlog]
+    [example] python3 agingplot.py 20200805_151000_XA402_memlog.txt
+
