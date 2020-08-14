@@ -30,7 +30,7 @@ do_exec() {
     scenario_rec_play2
 }
 
-do_precondition {
+do_precondition() {
     echo "Enable corona deadlock debugger"
     ${prefix} setprop persist.vendor.humax.corona.deadlock ture
     echo "Enable Alps debug log"

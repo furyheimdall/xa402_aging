@@ -100,6 +100,8 @@ def collectInfo(inputFile):
 		for line in fileContent:
 			lineParse(line)
 
+	if startTime == '' or endTime == '' :
+		return
 	startTimeDt = datetime.datetime.strptime(startTime, ' %Y-%m-%d %H:%M:%S')
 	endTimeDt = datetime.datetime.strptime(endTime, ' %Y-%m-%d %H:%M:%S')
 	elapsedDt = endTimeDt-startTimeDt
