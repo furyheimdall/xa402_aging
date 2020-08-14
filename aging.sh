@@ -224,7 +224,8 @@ trap "kill ${logcat_module_pid} ${memory_monitor_pid} ${bot_pid}; echo 'related 
 count=0
 while [ 1 ]
 do
+    timestamp=$(date "+%Y-%m-%d %H:%M:%S")
     count=$(($count+1))
-    echo "Execution Aging Scenario : Count ($count)"
+    echo "[${timestamp}] Execution Aging Scenario : Count ($count)"
     do_exec
 done

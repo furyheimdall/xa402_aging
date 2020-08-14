@@ -114,6 +114,26 @@ def searchStringFromShell(command, save):
 	f.close()
 	return len(log)
 
+def handleCrashHistory():
+	collectInfo(plotDataPath)
+	crashReporting=''
+	for crash in crashHistory:
+		crashReporting = crashReporting + '\n' + crash		
+	return crashReporting
+
+def helpMssage():
+	helpMsg='[Supported CMDs]\n'
+	helpMsg+='/aginginfo : to get aging information\n'
+	helpMsg+='/getplotimg : to receive plot image\n'
+	helpMsg+='/getplotdata : to receive plot data in txt\n'
+	helpMsg+='/getlog : to receive log file\n'
+	helpMsg+='/getcrashhistory : to receive crash history log\n'
+	helpMsg+='/getcrashlog : to receive crash log in detail\n'
+	helpMsg+='/getsuspicious : to receive suspicious log such that audio flinger could not create track\n'
+	helpMsg+='/register : to receive crash alarm\n'
+	helpMsg+='/unregister : if you dont want to receive crash alarm\n'
+	return helpMsg
+		
 def handleTelegramChat(msg):
 	content_type, chat_type, chat_id = telepot.glance(msg)
 	
@@ -131,18 +151,15 @@ def handleTelegramChat(msg):
 		elif '/getplotdata' in command :
 			bot.sendDocument(chat_id, document=open(plotDataPath, 'rb'))
 		elif '/getcrashhistory' in command :
-			collectInfo(plotDataPath)
-			crashReporting=''
-			for crash in crashHistory:
-				crashReporting = crashReporting + '\n' + crash
-			if len(crashReporting) >= 4096:
+			result = handleCrashHistory()
+			if len(result) >= 4096:
 				f = open('./crashreporting.txt','w')
-				f.write(crashReporting)
+				f.write(result)
 				f.close()
 				bot.sendDocument(chat_id, document=open('./crashreporting.txt', 'rb'))
 				os.remove('./crashreporting.txt')
 			else:
-				bot.sendMessage(chat_id, crashReporting)	
+				bot.sendMessage(chat_id, result)	
 		elif '/getcrashlog' in command :
 			bot.sendMessage(chat_id, 'This command could take long time')
 			cmd = ['egrep', '-n25', 'beginning of crash|FATAL',  logDataPath]
@@ -181,21 +198,47 @@ def handleTelegramChat(msg):
 			collectInfo(plotDataPath)
 			global agingInfo
 			bot.sendMessage(chat_id, agingInfo)
+		elif '/register' in command:
+			listeners[chat_id] = msg['chat']['first_name']
+			bot.sendMessage(chat_id, 'Registered')			
+		elif '/unregister' in command:
+			del listeners[chat_id]
+			bot.sendMessage(chat_id, 'Unregistered')
+		elif '/getlistener' in command:
+			currentListeners=''
+			for k in listeners.keys():
+				currentListeners += (listeners[k] + ' ')
+			if (len(currentListeners) == 0):
+				bot.sendMessage(chat_id, "There are no listeners")
+			else:
+				bot.sendMessage(chat_id, currentListeners)
 		else:
 			bot.sendMessage(chat_id, 'Unknown command')
-			bot.sendMessage(chat_id, '[Supported CMDs]\n /aginginfo : to get aging information\n /getplotimg : to receive plot image\n /getplotdata : to receive plot data in txt\n /getlog : to receive log file\n /getcrashhistory : to receive crash history log\n /getcrashlog : to receive crash log in detail\n /getsuspicious : to receive suspicious log such that audio flinger could not create track')
+			bot.sendMessage(chat_id, helpMssage())
 	elif content_type == 'document':
 		fileId = msg['document']['file_id']
 		fileName = msg['document']['file_name']
 		bot.download_file(fileId, './downloads/' + fileName)
 		print ('Got file : ' + fileId + ' from ' + msg['chat']['first_name'] + '(' + str(chat_id) + ')')
 		bot.sendMessage(chat_id, "Download complete")
-		
+	
 def avoidPreviousMsgDuringShutdown():
 	updates = bot.getUpdates()
 	if updates:
 	    last_update_id = updates[-1]['update_id']
 	    bot.getUpdates(offset=last_update_id+1)
+
+def notifyListeners(msg):
+	for k in listeners.keys():
+		bot.sendMessage(k, msg)
+		
+def backgroundJob():
+	#check crashhistory
+	global previousCrashHistory
+	checkCrashHistory = handleCrashHistory()
+	if len(checkCrashHistory) != len(previousCrashHistory):
+		previousCrashHistory = checkCrashHistory
+		notifyListeners("Crash detected on current aging")
 	
 def entry(botToken, plotData, logData):
 	global plotDataPath
@@ -212,6 +255,7 @@ def entry(botToken, plotData, logData):
 	bot.message_loop(handleTelegramChat)
 	print('>>>>>>  Connected telegram bot : ' + bot.getMe()['first_name'])
 	while True:
+		backgroundJob()
 		time.sleep(10)
 
 bot=''
@@ -225,6 +269,8 @@ endTime=''
 agingTitle=''
 agingRunningOn=''
 agingPath=''
+previousCrashHistory=''
+listeners=dict()
 
 if __name__ == '__main__':
 	if len(sys.argv) >= 4:
