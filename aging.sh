@@ -30,6 +30,12 @@ do_exec() {
     scenario_rec_play2
 }
 
+do_precondition {
+    echo "Enable corona deadlock debugger"
+    ${prefix} setprop persist.vendor.humax.corona.deadlock ture
+    echo "Enable Alps debug log"
+    ${prefix} setprop persist.alps.system.debug.log true
+}
 
 ###################################################################################################
 
@@ -199,6 +205,7 @@ logcat_target="${time}_${model}_logcat.txt"
 mem_target="${time}_${model}_memlog.txt"
 rm -rf ${mem_target}
 touch ${mem_target}
+do_precondition
 echo "* starting logcat..."
 ${prefix} logcat -c
 ${prefix} logcat > ${logcat_target} &
