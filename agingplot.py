@@ -43,6 +43,9 @@ def draw_plot():
 	define_chart[2] = [binderSystem, 'Binder consumption (System)', 'Time', 'The number of Binder', 'g']
 	define_chart[3] = [binderTotal, 'Binder consumption (Total)', 'Time', 'The number of Binder', 'y']
 	define_chart[4] = [logdHeap, 'LogD NativeHeap consumption', 'Time', 'Heap(KB)', 'gray']
+	define_chart[5] = [bmemHeap, 'BMEM consumption % (PEAK)', 'Time', 'Ratio(%)', 'gray']
+	define_chart[6] = [logServiceCpu, 'LogService CPU usage', 'Time', 'Usage', 'gray']
+		
 	fig, axs = plt.subplots(len(define_chart), 1)
 	fig.set_figwidth(10)
 	fig.set_figheight(len(define_chart)*3)
@@ -50,7 +53,7 @@ def draw_plot():
 	for k in define_chart.keys():
 		setup_plot(plt, axs[k], define_chart[k][1], define_chart[k][2], define_chart[k][3], define_chart[k][4], define_chart[k][0])
 	fig.tight_layout()
-	plt.savefig('graph.png', dpi=100)
+	plt.savefig('graph.png', dpi=150)
 	if __name__ == "__main__":
 		plt.show()
 		
@@ -67,13 +70,20 @@ def lineParse(line):
 			binderSystem.append(int(splitLine[1]))
 		if splitLine[0] == 'Logd NatvHeap':
 			logdHeap.append(int(splitLine[1]))
-
+		if splitLine[0] == 'Bmem Peak':
+			print(splitLine[1])
+			bmemHeap.append(int(splitLine[1]))
+		if splitLine[0] == 'LogService CPU':
+			logServiceCpu.append(float(splitLine[1]))
+			
 def readFile(inputFile):
 	javaHeap.clear()
 	nativeHeap.clear()
 	binderTotal.clear()
 	binderSystem.clear()
 	logdHeap.clear()
+	bmemHeap.clear()
+	logServiceCpu.clear()
 	with open(inputFile,encoding='UTF-8') as f:
 		fileContent = f.readlines()
 		fileContent = [x.strip() for x in fileContent]
@@ -95,6 +105,8 @@ javaHeap=[]
 binderTotal=[]
 binderSystem=[]
 logdHeap=[]
+bmemHeap=[]
+logServiceCpu=[]
 
 
 '''

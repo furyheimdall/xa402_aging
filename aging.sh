@@ -124,17 +124,21 @@ fetching_memory() {
         system_server_pid=$(${prefix} pidof system_server)
         timestamp=$(date "+%Y-%m-%d %H:%M:%S")
         echo "Current Time : ${timestamp}" >> ${mem_target}
-	if [ ${monitoring_pid} != ${check_pid} ];then
+				if [ ${monitoring_pid} != ${check_pid} ];then
           echo "* PID of package [${memory_monitoring_package}] has been changed : ${monitoring_pid} =>  ${check_pid} "
           echo "* PID of package [${memory_monitoring_package}] has been changed : ${monitoring_pid} =>  ${check_pid} " >> ${mem_target}
           monitoring_pid=${check_pid}
-	fi
+				fi
         ${prefix} dumpsys meminfo ${memory_monitoring_package} | grep "Java Heap:" >> ${mem_target}
         ${prefix} dumpsys meminfo ${memory_monitoring_package} | grep "Native Heap:" >> ${mem_target}
         ${prefix} cat /sys/kernel/debug/binder/proc/${check_pid} | grep node | wc -l | xargs echo "         Binder total : " >> ${mem_target}
         ${prefix} cat /sys/kernel/debug/binder/proc/${check_pid} | grep ${system_server_pid} | wc -l | xargs echo "         Binder related to system server : " >> ${mem_target}
         logd_mem=$(${prefix} dumpsys meminfo logd | grep "Native Heap:" | cut -c 25-)
+        bmem=$(${prefix} cat /proc/brcm/core | grep "MAIN" | cut -f 2 -d '%' | tr -d ' ')
+        logservice_cpu=$(${prefix} top -b -n 1 | grep com.humaxdigital.atv.logservice | sed '/grep/d' | awk '{ print $9}')
         echo "Logd NatvHeap:${logd_mem}" >> ${mem_target}
+        echo "Bmem Peak:${bmem}" >> ${mem_target}
+        echo "LogService CPU:${logservice_cpu}" >> ${mem_target}
         echo "" >> ${mem_target}
         sleep ${memory_fetching_interval};
     done
