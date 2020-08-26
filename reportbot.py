@@ -116,12 +116,17 @@ def searchStringFromShell(command, save):
 	f.close()
 	return len(log)
 
+def executeFromShell(command) :
+	fd_popen = subprocess.Popen(command, stdout=subprocess.PIPE, universal_newlines=True).stdout
+	log = fd_popen.read().strip()
+	fd_popen.close()
+	
 def handleCrashHistory():
 	collectInfo(plotDataPath)
 	crashReporting=''
 	for crash in crashHistory:
 		crashReporting = crashReporting + '\n' + crash		
-	return crashReporting
+	return crashReporting       
 
 def helpMssage():
 	helpMsg='[Supported CMDs]\n'
@@ -131,6 +136,8 @@ def helpMssage():
 	helpMsg+='/getlog : to receive log file\n'
 	helpMsg+='/getcrashhistory : to receive crash history log\n'
 	helpMsg+='/getcrashlog : to receive crash log in detail\n'
+	helpMsg+='/checktombstones : to receive tombstone history during this aging\n'
+	helpMsg+='/gettombstone [tombstone_name] : to receive specific tombstone\n'
 	helpMsg+='/getsuspicious : to receive suspicious log such that audio flinger could not create track\n'
 	helpMsg+='/register : to receive crash alarm\n'
 	helpMsg+='/unregister : if you dont want to receive crash alarm\n'
@@ -172,6 +179,33 @@ def handleTelegramChat(msg):
 				if 'non-empty' in terr.description:
 					bot.sendMessage(chat_id, 'There are no crash logs currently')	
 			os.remove('./crashlog.txt')
+		elif '/checktombstones' in command :
+			bot.sendMessage(chat_id, 'This command could take long time')
+			cmd = ['egrep', '-n', 'Tombstone written to:', logDataPath]
+			searchStringFromShell(cmd, './tombstones.txt')
+			try:
+				bot.sendDocument(chat_id, document=open('./tombstones.txt','rb'))
+			except telepot.exception.TelegramError as terr:
+				if 'non-empty' in terr.description:
+					bot.sendMessage(chat_id, 'There are no tombstones currently')
+			os.remove('./tombstones.txt')
+		elif '/gettombstone' in command :
+			splitLine = command.split(' ')
+			if len(splitLine) <= 1:
+				bot.sendMessage(chat_id, "this command needs specific tombstone name. show help message")
+				return
+			tombstonePath = '/data/tombstones/' + splitLine[1]
+			targetPath = './' + splitLine[1] + '.txt'
+			cmd = ['adb', 'pull', tombstonePath, targetPath]
+			executeFromShell(cmd)
+			try:
+				bot.sendDocument(chat_id, document=open(targetPath, 'rb'))
+			except telepot.exception.TelegramError as terr:
+				if 'non-empty' in terr.description:
+					bot.sendMessage(chat_id, 'There are no such tombstone data')
+			except OSError as e:
+				bot.sendMessage(chat_id, 'There are no such tombstone data')
+			os.remove(targetPath)
 		elif '/getsuspicious' in command :
 			bot.sendMessage(chat_id, 'This command could take long time')
 			cmd = ['egrep', '-n', 'AudioFlinger could not create|no video decoders available', logDataPath]
