@@ -59,22 +59,25 @@ def draw_plot():
 		
 def lineParse(line):
 	splitLine = line.split(':')
-	if len(splitLine) > 1:
-		if splitLine[0] == 'Java Heap':
-			javaHeap.append(int(splitLine[1]))
-		if splitLine[0] == 'Native Heap':
-			nativeHeap.append(int(splitLine[1]))
-		if splitLine[0] == 'Binder total ':
-			binderTotal.append(int(splitLine[1]))
-		if splitLine[0] == 'Binder related to system server ':
-			binderSystem.append(int(splitLine[1]))
-		if splitLine[0] == 'Logd NatvHeap':
-			logdHeap.append(int(splitLine[1]))
-		if splitLine[0] == 'Bmem Peak':
-			print(splitLine[1])
-			bmemHeap.append(int(splitLine[1]))
-		if splitLine[0] == 'LogService CPU':
-			logServiceCpu.append(float(splitLine[1]))
+	try:
+		if len(splitLine) > 1:
+			if splitLine[0] == 'Java Heap':
+				javaHeap.append(int(splitLine[1]))
+			if splitLine[0] == 'Native Heap':
+				nativeHeap.append(int(splitLine[1]))
+			if splitLine[0] == 'Binder total ':
+				binderTotal.append(int(splitLine[1]))
+			if splitLine[0] == 'Binder related to system server ':
+				binderSystem.append(int(splitLine[1]))
+			if splitLine[0] == 'Logd NatvHeap':
+				logdHeap.append(int(splitLine[1]))
+			if splitLine[0] == 'Bmem Peak':
+				bmemHeap.append(int(splitLine[1]))
+			if splitLine[0] == 'LogService CPU':
+				logServiceCpu.append(float(splitLine[1]))
+	except ValueError:
+		pass
+		#ignore
 			
 def readFile(inputFile):
 	javaHeap.clear()
