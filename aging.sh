@@ -112,6 +112,7 @@ scenario_rec_play2() {
 fetching_memory() {
     echo "* starting memory monitor... >> ${memory_monitoring_package}"
     echo "Aging Name : ${title}" >> ${mem_target}
+    echo "Target device IP : ${ip}" >> ${mem_target}
     echo "Running on : $(echo $(whoami)@$(hostname)[$(hostname -I))]" >> ${mem_target}
     echo "Aging Path : $(pwd)" >> ${mem_target}
     echo "S/W fingerprint : ${fingerprint}" >> ${mem_target}

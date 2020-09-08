@@ -59,6 +59,7 @@ def lineParse(line):
 	global agingTitle
 	global agingRunningOn
 	global agingPath
+	global targetIp
 	splitLine = line.split(':')
 	if len(splitLine) > 1:
 		if splitLine[0] == 'Current Time ':
@@ -77,6 +78,8 @@ def lineParse(line):
 			agingRunningOn = '* Host : ' + splitLine[1] + '\n'
 		elif 'Aging Path' in splitLine[0]:
 			agingPath = '* Path : ' + splitLine[1] + '\n'
+		elif 'Target device IP' in splitLine[0]:
+			targetIp = splitLine[1].lstrip()	
 	elif len(splitLine) == 1:
 		if 'memory monitoring on' in line:
 			splitSubline = splitLine[0].split('monitoring on package ')
@@ -138,6 +141,7 @@ def helpMssage():
 	helpMsg+='/getcrashlog : to receive crash log in detail\n'
 	helpMsg+='/checktombstones : to receive tombstone history during this aging\n'
 	helpMsg+='/gettombstone [tombstone_name] : to receive specific tombstone\n'
+	helpMsg+='/getbugreport : to receive bugreport file\n'
 	helpMsg+='/getsuspicious : to receive suspicious log such that audio flinger could not create track\n'
 	helpMsg+='/register : to receive crash alarm\n'
 	helpMsg+='/unregister : if you dont want to receive crash alarm\n'
@@ -196,7 +200,10 @@ def handleTelegramChat(msg):
 				return
 			tombstonePath = '/data/tombstones/' + splitLine[1]
 			targetPath = './' + splitLine[1] + '.txt'
-			cmd = ['adb', 'pull', tombstonePath, targetPath]
+			if len(targetIp) < 9:
+				cmd = ['adb', 'pull', tombstonePath, targetPath]
+			else:
+				cmd = ['adb', '-s', targetIp+':5555', 'pull', tombstonePath, targetPath]
 			executeFromShell(cmd)
 			try:
 				bot.sendDocument(chat_id, document=open(targetPath, 'rb'))
@@ -206,6 +213,20 @@ def handleTelegramChat(msg):
 			except OSError as e:
 				bot.sendMessage(chat_id, 'There are no such tombstone data')
 			os.remove(targetPath)
+		elif '/getbugreport' in command :
+			bot.sendMessage(chat_id, 'Preparing bug report. This could take up to 5 min')
+			if len(targetIp) < 9:
+				cmd = ['adb', 'bugreport', '/tmp/bugreport.zip']
+			else:
+				cmd = ['adb', '-s', targetIp+':5555', 'bugreport', '/tmp/bugreport.zip']
+			executeFromShell(cmd)
+			try:
+				bot.sendDocument(chat_id, document=open('/tmp/bugreport.zip', 'rb'))
+			except telepot.exception.TelegramError as terr:
+				if 'non-empty' in terr.description:
+					bot.sendMessage(chat_id, 'Could not generate bugreport')
+			except OSError as e:
+				bot.sendMessage(chat_id, 'Could not generate bugreport')
 		elif '/getsuspicious' in command :
 			bot.sendMessage(chat_id, 'This command could take long time')
 			cmd = ['egrep', '-n', 'AudioFlinger could not create|no video decoders available', logDataPath]
@@ -306,6 +327,7 @@ agingTitle=''
 agingRunningOn=''
 agingPath=''
 previousCrashHistory=''
+targetIp=''
 listeners=dict()
 
 if __name__ == '__main__':
