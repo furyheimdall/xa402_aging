@@ -32,7 +32,7 @@ do_exec() {
 
 do_precondition() {
     echo "Enable corona deadlock debugger"
-    ${prefix} setprop persist.vendor.humax.corona.deadlock ture
+    ${prefix} setprop persist.vendor.humax.corona.deadlock true
     echo "Enable Alps debug log"
     ${prefix} setprop persist.alps.system.debug.log true
 }
