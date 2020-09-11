@@ -110,7 +110,7 @@ def collectInfo(inputFile):
 	elapsedDt = endTimeDt-startTimeDt
 	agingInfo = agingTitle + agingRunningOn + agingPath + agingInfo + '* Aging Period : ' + startTime + ' ~ ' + endTime + ' (elapsed : ' + str(elapsedDt) + ')'
 
-def searchStringFromShell(command, save):
+def executeFromShellAndStore(command, save):
 	fd_popen = subprocess.Popen(command, stdout=subprocess.PIPE, universal_newlines=True).stdout
 	log = fd_popen.read().strip()
 	fd_popen.close()
@@ -137,6 +137,7 @@ def helpMssage():
 	helpMsg+='/getplotimg : to receive plot image\n'
 	helpMsg+='/getplotdata : to receive plot data in txt\n'
 	helpMsg+='/getlog : to receive log file\n'
+	helpMsg+='/getlog startline~endline : to receive partial log. ex) /getlog 1~100\n'
 	helpMsg+='/getcrashhistory : to receive crash history log\n'
 	helpMsg+='/getcrashlog : to receive crash log in detail\n'
 	helpMsg+='/checktombstones : to receive tombstone history during this aging\n'
@@ -176,7 +177,7 @@ def handleTelegramChat(msg):
 		elif '/getcrashlog' in command :
 			bot.sendMessage(chat_id, 'This command could take long time')
 			cmd = ['egrep', '-n25', 'beginning of crash|FATAL',  logDataPath]
-			searchStringFromShell(cmd, './crashlog.txt')
+			executeFromShellAndStore(cmd, './crashlog.txt')
 			try:
 				bot.sendDocument(chat_id, document=open('./crashlog.txt','rb'))
 			except telepot.exception.TelegramError as terr:
@@ -186,7 +187,7 @@ def handleTelegramChat(msg):
 		elif '/checktombstones' in command :
 			bot.sendMessage(chat_id, 'This command could take long time')
 			cmd = ['egrep', '-n', 'Tombstone written to:', logDataPath]
-			searchStringFromShell(cmd, './tombstones.txt')
+			executeFromShellAndStore(cmd, './tombstones.txt')
 			try:
 				bot.sendDocument(chat_id, document=open('./tombstones.txt','rb'))
 			except telepot.exception.TelegramError as terr:
@@ -230,7 +231,7 @@ def handleTelegramChat(msg):
 		elif '/getsuspicious' in command :
 			bot.sendMessage(chat_id, 'This command could take long time')
 			cmd = ['egrep', '-n', 'AudioFlinger could not create|no video decoders available', logDataPath]
-			szOutput = searchStringFromShell(cmd, './suspicious.txt')
+			szOutput = executeFromShellAndStore(cmd, './suspicious.txt')
 			try:
 				if szOutput > 49 * 1024 * 1024:
 					bot.sendMessage(chat_id, 'suspicous log is too big')
@@ -244,13 +245,36 @@ def handleTelegramChat(msg):
 			if logDataPath == '':
 				bot.sendMessage(chat_id, 'Log file was not given')
 			else :
-				bot.sendMessage(chat_id, 'preparing logdata...')
-				targetFiles=maySplitFile(compress(logDataPath))
-				bot.sendMessage(chat_id, 'you will receive total ' + str(len(targetFiles)) + ' files === sending...')
-				for sendFile in targetFiles:
-					bot.sendDocument(chat_id, document=open(sendFile, 'rb'))
-				bot.sendMessage(chat_id, 'send complete')
-				removeFiles(targetFiles)
+				splitLine = command.split(' ')
+				if len(splitLine) <= 1:
+					bot.sendMessage(chat_id, 'preparing full logdata...')
+					targetFiles=maySplitFile(compress(logDataPath))
+					bot.sendMessage(chat_id, 'you will receive total ' + str(len(targetFiles)) + ' files === sending...')
+					for sendFile in targetFiles:
+						bot.sendDocument(chat_id, document=open(sendFile, 'rb'))
+					bot.sendMessage(chat_id, 'send complete')
+					removeFiles(targetFiles)
+				else:
+					splitLine2 = splitLine[1].split('~')
+					if len(splitLine2) <= 1:
+						bot.sendMessage(chat_id, 'invalid parameter...')
+					else:
+						if int(splitLine2[0]) <= 0:
+							bot.sendMessage(chat_id, 'start line must be >= 1')
+						else:
+							bot.sendMessage(chat_id, 'preparing partial logdata...')
+							cmd = ['sed', '-n', splitLine2[0] + ',' + splitLine2[1] + 'p', logDataPath]
+							print(cmd)
+							szOutput = executeFromShellAndStore(cmd, logDataPath + '_filtered.txt')
+							if szOutput <= 0:
+								bot.sendMessage(chat_id, 'there are no result')
+							else:
+								targetFiles=maySplitFile(compress(logDataPath + '_filtered.txt'))
+								bot.sendMessage(chat_id, 'you will receive total ' + str(len(targetFiles)) + ' files === sending...')
+								for sendFile in targetFiles:
+									bot.sendDocument(chat_id, document=open(sendFile, 'rb'))
+								bot.sendMessage(chat_id, 'send complete')
+								removeFiles(targetFiles)
 		elif '/aginginfo' in command:
 			collectInfo(plotDataPath)
 			global agingInfo
