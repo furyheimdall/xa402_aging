@@ -8,6 +8,7 @@ import socket
 import zipfile
 import os
 import datetime
+import threading
 import subprocess
 import agingplot as ap
 
@@ -313,14 +314,29 @@ def notifyListeners(msg):
 	for k in listeners.keys():
 		bot.sendMessage(k, msg)
 		
-def backgroundJob():
-	#check crashhistory
+def monitorCrashHistory():
 	global previousCrashHistory
 	checkCrashHistory = handleCrashHistory()
+	print( 'prev : ' + previousCrashHistory + ' / current : ' + checkCrashHistory)
 	if len(checkCrashHistory) != len(previousCrashHistory):
 		previousCrashHistory = checkCrashHistory
 		notifyListeners("Crash detected on current aging")
+	threading.Timer(10, monitorCrashHistory).start()
 	
+def monitorSuspicious():
+	global previousSzSuspicious
+	cmd = ['egrep', '-n', 'AudioFlinger could not create|no video decoders available', logDataPath]
+	szOutput = executeFromShellAndStore(cmd, '/tmp/suspicious_monitor.txt_' + str(os.getpid()))
+	if previousSzSuspicious - szOutput > 1 * 1024 * 1024 :
+		previousSzSuspicious = szOutput
+		notifyListeners('Suspicious log are rapidly increasing... check ASAP')
+	os.remove('/tmp/suspicious_monitor.txt_' + str(os.getpid()))
+	threading.Timer(600, monitorSuspicious).start()
+	
+def startBackgroundJob():
+	monitorCrashHistory()
+	monitorSuspicious()
+
 def entry(botToken, plotData, logData):
 	global plotDataPath
 	global logDataPath
@@ -335,8 +351,8 @@ def entry(botToken, plotData, logData):
 	avoidPreviousMsgDuringShutdown()
 	bot.message_loop(handleTelegramChat)
 	print('>>>>>>  Connected telegram bot : ' + bot.getMe()['first_name'])
+	startBackgroundJob()
 	while True:
-		backgroundJob()
 		time.sleep(10)
 
 bot=''
@@ -351,6 +367,7 @@ agingTitle=''
 agingRunningOn=''
 agingPath=''
 previousCrashHistory=''
+previousSzSuspicious=0
 targetIp=''
 listeners=dict()
 
