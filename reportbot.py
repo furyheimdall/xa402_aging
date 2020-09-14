@@ -317,7 +317,6 @@ def notifyListeners(msg):
 def monitorCrashHistory():
 	global previousCrashHistory
 	checkCrashHistory = handleCrashHistory()
-	print( 'prev : ' + previousCrashHistory + ' / current : ' + checkCrashHistory)
 	if len(checkCrashHistory) != len(previousCrashHistory):
 		previousCrashHistory = checkCrashHistory
 		notifyListeners("Crash detected on current aging")
