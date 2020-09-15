@@ -326,9 +326,10 @@ def monitorSuspicious():
 	global previousSzSuspicious
 	cmd = ['egrep', '-n', 'AudioFlinger could not create|no video decoders available', logDataPath]
 	szOutput = executeFromShellAndStore(cmd, '/tmp/suspicious_monitor.txt_' + str(os.getpid()))
-	if previousSzSuspicious - szOutput > 1 * 1024 * 1024 :
+	print(str(previousSzSuspicious - szOutput))
+	if szOutput - previousSzSuspicious > 1 * 1024 * 1024 :
 		previousSzSuspicious = szOutput
-		notifyListeners('Suspicious log are rapidly increasing... check ASAP')
+		notifyListeners('Suspicious log are rapidly increasing... check ASAP : ' + str(int(previousSzSuspicious/1024)) + 'KB')
 	os.remove('/tmp/suspicious_monitor.txt_' + str(os.getpid()))
 	threading.Timer(600, monitorSuspicious).start()
 	
