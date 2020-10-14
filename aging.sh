@@ -27,7 +27,8 @@ do_exec() {
     #scenario_exo_leak
     #scenario_test
     #scenario_rec_play
-    scenario_rec_play2
+    #scenario_rec_play2
+    scenario_sqe_scenario
 }
 
 do_precondition() {
@@ -109,6 +110,90 @@ scenario_rec_play2() {
     sleep 1
 }
 
+scenario_sqe_scenario() {
+    ${prefix} input keyevent KEYCODE_0 && ${prefix} input keyevent KEYCODE_1 && ${prefix} input keyevent KEYCODE_1
+    sleep 5
+    
+    ${prefix} input keyevent KEYCODE_2
+    sleep 10
+    ${prefix} input keyevent CHANNEL_UP
+    sleep 10
+    ${prefix} input keyevent CHANNEL_UP
+    sleep 5
+    ${prefix} input keyevent CHANNEL_DOWN
+    sleep 10
+    ${prefix} input keyevent 198
+    sleep 5
+    ${prefix} input keyevent KEYCODE_DPAD_CENTER
+    sleep 5
+    ${prefix} input keyevent 172
+    sleep 10
+    ${prefix} input keyevent 193
+    sleep 10
+    ${prefix} input keyevent 130
+    sleep 300
+    ${prefix} input keyevent 86
+    sleep 2
+    ${prefix} input keyevent KEYCODE_DPAD_CENTER
+    sleep 10
+    ${prefix} input keyevent CHANNEL_UP
+    sleep 15
+    ${prefix} input keyevent 175
+    sleep 15
+    ${prefix} input keyevent KEYCODE_4
+    sleep 20
+    ${prefix} input keyevent 230
+    sleep 10
+    ${prefix} input keyevent 189
+    sleep 5
+    ${prefix} input keyevent 172
+    sleep 5
+    ${prefix} input keyevent KEYCODE_DPAD_CENTER
+    sleep 5
+    ${prefix} input keyevent KEYCODE_DPAD_CENTER
+    sleep 5
+    ${prefix} input keyevent 201
+    sleep 5
+    ${prefix} input keyevent KEYCODE_DPAD_CENTER
+    sleep 10
+    ${prefix} input keyevent 192
+    sleep 10
+    ${prefix} input keyevent KEYCODE_3
+    sleep 2
+    ${prefix} input keyevent KEYCODE_0
+    sleep 2
+    ${prefix} input keyevent KEYCODE_2
+    sleep 10
+    ${prefix} input keyevent 222
+    sleep 10
+    ${prefix} input keyevent 222
+    sleep 10
+    ${prefix} input keyevent 194
+    sleep 10
+    ${prefix} input keyevent KEYCODE_1
+    sleep 10
+    ${prefix} input keyevent 190
+    sleep 10
+    ${prefix} input keyevent 191
+    sleep 60
+    ${prefix} input keyevent BACK
+    sleep 10
+    ${prefix} input keyevent BACK
+    sleep 10
+    ${prefix} input keyevent 193
+    sleep 10
+    ${prefix} input keyevent KEYCODE_1
+    sleep 10
+    ${prefix} input keyevent KEYCODE_2
+    sleep 2
+    ${prefix} input keyevent KEYCODE_0
+    sleep 2
+    ${prefix} input keyevent KEYCODE_0
+    sleep 6
+    ${prefix} input keyevent KEYCODE_1
+    sleep 1144
+}
+
 fetching_memory() {
     echo "* starting memory monitor... >> ${memory_monitoring_package}"
     echo "Aging Name : ${title}" >> ${mem_target}
@@ -125,11 +210,11 @@ fetching_memory() {
         system_server_pid=$(${prefix} pidof system_server)
         timestamp=$(date "+%Y-%m-%d %H:%M:%S")
         echo "Current Time : ${timestamp}" >> ${mem_target}
-				if [ ${monitoring_pid} != ${check_pid} ];then
+        if [ ${monitoring_pid} != ${check_pid} ];then
           echo "* PID of package [${memory_monitoring_package}] has been changed : ${monitoring_pid} =>  ${check_pid} "
           echo "* PID of package [${memory_monitoring_package}] has been changed : ${monitoring_pid} =>  ${check_pid} " >> ${mem_target}
           monitoring_pid=${check_pid}
-				fi
+        fi
         ${prefix} dumpsys meminfo ${memory_monitoring_package} | grep "Java Heap:" >> ${mem_target}
         ${prefix} dumpsys meminfo ${memory_monitoring_package} | grep "Native Heap:" >> ${mem_target}
         ${prefix} cat /sys/kernel/debug/binder/proc/${check_pid} | grep node | wc -l | xargs echo "         Binder total : " >> ${mem_target}
