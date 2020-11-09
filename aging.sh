@@ -7,8 +7,7 @@ ip="192.168.2.166"
 time=`date "+%Y%m%d%H%M"`;
 memory_fetching_interval=10     #sec
 memory_monitoring_package="com.humaxdigital.corona.tvinput.jcom"
-#memory_monitoring_package="com.humaxdigital.alps.demo.player"
-#memory_monitoring_package="com.google.android.exoplayer2.demo"
+keep_connect="no"
 
 adb=
 prefix=
@@ -23,12 +22,12 @@ update_config() {
 # execute secnario
 do_exec() {
     #scenario
-    #scenario_nothingtodo
+    scenario_monitoring
     #scenario_exo_leak
     #scenario_test
     #scenario_rec_play
     #scenario_rec_play2
-    scenario_sqe_scenario
+    #scenario_sqe_scenario
 }
 
 do_precondition() {
@@ -41,8 +40,8 @@ do_precondition() {
 ###################################################################################################
 
 
-scenario_nothingtodo() {
-    echo "aging on progress..."
+scenario_monitoring() {
+    echo "Monitoring given package..."
     sleep 10;
 }
 
@@ -232,13 +231,14 @@ fetching_memory() {
 
 print_usage() {
     echo "Usage:"
-    echo "./aging.sh [-b BOT_TOKEN] [-i IP] [-t AGING_TITLE] [-m MONITORING_PACKAGE] [-s MONITORING_INTERVAL]"
+    echo "./aging.sh [-b BOT_TOKEN] [-i IP] [-t AGING_TITLE] [-m MONITORING_PACKAGE] [-s MONITORING_INTERVAL] [-k To keep connecion, set to 'yes']"
     echo "    if there is no option, script will use default value"
     echo "    Deafult Bot : ${bot_token}"
     echo "    Default IP : ${ip}"
     echo "    Default Title : ${title}"
     echo "    Default Package : ${memory_monitoring_package}"
     echo "    Default Interval in sec : ${memory_fetching_interval}"
+	echo "    Keep Connection : ${keep_connect}"
 }
 
 while (( "$#" )); do
@@ -267,6 +267,10 @@ while (( "$#" )); do
             memory_fetching_interval=$2
             shift 2
             ;;
+		-k|--keepconnect)
+			keep_connect="yes"
+			shift 2
+			;;
         *)
             echo "Unsupported option $1" >&2
             print_usage
@@ -277,15 +281,17 @@ done
 
 update_config
 
-echo "* disconnect adb..."
-adb disconnect ${ip}
-sleep 2
-echo "* starting adb..."
-adb connect ${ip}
-sleep 1 && ${adb} root
-# again
-sleep 1 && adb connect ${ip}
-sleep 1 && ${adb} root
+if [ $keep_connect == "no" ] ; then
+    echo "* disconnect adb..."
+    adb disconnect ${ip}
+    sleep 2
+    echo "* starting adb..."
+    adb connect ${ip}
+    sleep 1 && ${adb} root
+    # again
+    sleep 1 && adb connect ${ip}
+    sleep 1 && ${adb} root
+fi
 echo "* Fetching Device info..."
 model=$(${prefix} getprop ro.product.model)
 fingerprint=$(${prefix} getprop ro.build.fingerprint)
