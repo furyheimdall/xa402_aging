@@ -5,13 +5,14 @@ HOWTO
 
     ./aging.sh --help
     Usage:
-    ./aging.sh [-b BOT_TOKEN] [-i IP] [-t AGING_TITLE] [-m MONITORING_PACKAGE] [-s MONITORING_INTERVAL]
+    ./aging.sh [-b BOT_TOKEN] [-i IP] [-t AGING_TITLE] [-m MONITORING_PACKAGE] [-s MONITORING_INTERVAL] [-k to keep current connection, use this option with param "yes"]
         if there is no option, script will use default value
         Deafult Bot : 
         Default IP : 192.168.2.166
         Default Title : Unnamed Aging
         Default Package : com.humaxdigital.corona.tvinput.jcom
         Default Interval in sec : 10
+        Keep Connection : no
 
     [example] ./aging.sh -b $(cat token) -i 192.168.11.19 -t "My own aging on local server"
 
