@@ -47,9 +47,10 @@ scenario_monitoring() {
 }
 
 scenario_change_network_recursive() {
-	keyevent ${KEY_TER} 5
-	keyevent ${KEY_BS} 5
-	keyevent ${KEY_BS4K} 5
+	keyevent ${KEY_TER} 3
+	keyevent ${KEY_BS} 3
+	keyevent ${KEY_BS4K} 3
+	keyevent ${KEY_CATV} 3
 }
 
 scenario_rec_play() {
@@ -149,7 +150,6 @@ scenario_sqe_scenario() {
 
 keyevent() {
 	${prefix} input keyevent $1
-	echo "sleep $2"
 	sleep $2
 }
 
