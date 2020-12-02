@@ -8,6 +8,12 @@ memory_fetching_interval=10     #sec
 memory_monitoring_package="com.humaxdigital.corona.tvinput.jcom"
 keep_connect="no"
 
+# Select sceanrio
+selected_scenario=scenario_monitoring
+#selected_scenario=scenario_change_network_recursive
+#selected_scenario=scenario_rec_play
+#selected_scenario=scenario_sqe_scenario
+
 # Before starting, below command will be executed once
 do_precondition() {
     echo "Enable corona deadlock debugger"
@@ -16,13 +22,6 @@ do_precondition() {
     ${prefix} setprop persist.alps.system.debug.log true
 }
 
-# Select sceanrio
-do_exec() {
-    scenario_monitoring
-	#scenario_change_network_recursive
-    #scenario_rec_play
-    #scenario_sqe_scenario
-}
 
 ################################## KEY DEFINITION ###################################################
 KEY_TER=194
@@ -160,6 +159,7 @@ update_config() {
 fetching_memory() {
     echo "* starting memory monitor... >> ${memory_monitoring_package}"
     echo "Aging Name : ${title}" >> ${mem_target}
+	echo "Selected aging scenario : ${selected_scenario}" >> ${mem_target}
     echo "Target device IP : ${ip}" >> ${mem_target}
     echo "Running on : $(echo $(whoami)@$(hostname)[$(hostname -I))]" >> ${mem_target}
     echo "Aging Path : $(pwd)" >> ${mem_target}
@@ -195,13 +195,14 @@ fetching_memory() {
 
 print_usage() {
     echo "Usage:"
-    echo "./aging.sh [-b BOT_TOKEN] [-i IP] [-t AGING_TITLE] [-m MONITORING_PACKAGE] [-s MONITORING_INTERVAL] [-k To keep connecion, set to 'yes']"
+    echo "./aging.sh [-b BOT_TOKEN] [-i IP] [-t AGING_TITLE] [-m MONITORING_PACKAGE] [-s MONITORING_INTERVAL] [-n SCENARIO_NAME] [-k To keep connecion, set to 'yes']"
     echo "    if there is no option, script will use default value"
     echo "    Deafult Bot : ${bot_token}"
     echo "    Default IP : ${ip}"
     echo "    Default Title : ${title}"
     echo "    Default Package : ${memory_monitoring_package}"
     echo "    Default Interval in sec : ${memory_fetching_interval}"
+	echo "    Default Sceanrio : ${selected_scenario}"
 	echo "    Keep Connection : ${keep_connect}"
 }
 
@@ -231,6 +232,10 @@ while (( "$#" )); do
             memory_fetching_interval=$2
             shift 2
             ;;
+		-n|--scenario)
+			selected_scenario=$2
+			shift 2
+			;;
 		-k|--keepconnect)
 			keep_connect="yes"
 			shift 2
@@ -286,6 +291,7 @@ sleep 2;
 echo "* LOGCAT monitor PID = ${logcat_module_pid}"
 echo "* Memory monitor PID = ${memory_monitor_pid}"
 echo "* Start to reporting bot = ${bot_pid}"
+echo "* Selected aging scenario = ${selected_scenario}"
 echo "* Aging Started >>> ${title} <<< "
 trap "kill ${logcat_module_pid} ${memory_monitor_pid} ${bot_pid}; echo 'related process will be cleaned up';exit 0" INT TERM QUIT
 
@@ -295,5 +301,5 @@ do
     timestamp=$(date "+%Y-%m-%d %H:%M:%S")
     count=$(($count+1))
     echo "[${timestamp}] Execution Aging Scenario : Count ($count)"
-    do_exec
+	${selected_scenario}
 done
