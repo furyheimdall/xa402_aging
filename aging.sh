@@ -4,15 +4,9 @@
 bot_token=""
 title="Unnamed Aging"
 ip="192.168.2.166"
-time=`date "+%Y%m%d%H%M"`;
 memory_fetching_interval=10     #sec
 memory_monitoring_package="com.humaxdigital.corona.tvinput.jcom"
 keep_connect="no"
-
-adb=
-prefix=
-logcat_module_pid=
-memory_monitor_pid=
 
 # Before starting, below command will be executed once
 do_precondition() {
@@ -35,8 +29,8 @@ KEY_STOP=86
 
 # execute secnario
 do_exec() {
-    #scenario_monitoring
-	scenario_change_network_recursive
+    scenario_monitoring
+	#scenario_change_network_recursive
     #scenario_rec_play
     #scenario_sqe_scenario
 }
@@ -147,6 +141,11 @@ scenario_sqe_scenario() {
 
 
 ############################# AGING related routines #######################################
+
+adb=
+prefix=
+logcat_module_pid=
+memory_monitor_pid=
 
 keyevent() {
 	${prefix} input keyevent $1
@@ -262,6 +261,7 @@ model=$(${prefix} getprop ro.product.model)
 fingerprint=$(${prefix} getprop ro.build.fingerprint)
 echo "MODEL : ${model}"
 echo "FINGER PRINT : ${fingerprint}"
+time=`date "+%Y%m%d%H%M"`;
 logcat_target="${time}_${model}_logcat.txt"
 mem_target="${time}_${model}_memlog.txt"
 rm -rf ${mem_target}
