@@ -14,22 +14,7 @@ prefix=
 logcat_module_pid=
 memory_monitor_pid=
 
-update_config() {
-    adb="adb -s ${ip}:5555"
-    prefix="${adb} shell"    
-}
-
-# execute secnario
-do_exec() {
-    #scenario
-    scenario_monitoring
-    #scenario_exo_leak
-    #scenario_test
-    #scenario_rec_play
-    #scenario_rec_play2
-    #scenario_sqe_scenario
-}
-
+# Before starting, below command will be executed once
 do_precondition() {
     echo "Enable corona deadlock debugger"
     ${prefix} setprop persist.vendor.humax.corona.deadlock true
@@ -37,76 +22,42 @@ do_precondition() {
     ${prefix} setprop persist.alps.system.debug.log true
 }
 
-###################################################################################################
+################################## KEY DEFINITION ###################################################
+KEY_TER=194
+KEY_BS=193
+KEY_BS4K=189
+KEY_CATV=192
+KEY_REC_LIST=201
+KEY_REC=130
+KEY_STOP=86
 
+################################## INTERNAL SCEANRIO ################################################
+
+# execute secnario
+do_exec() {
+    #scenario_monitoring
+	scenario_change_network_recursive
+    #scenario_rec_play
+    #scenario_sqe_scenario
+}
 
 scenario_monitoring() {
     echo "Monitoring given package..."
     sleep 10;
 }
 
-scenario_test() {
-    ${prefix} input keyevent KEYCODE_ENTER
-    sleep 210;
-    ${prefix} input keyevent KEYCODE_BACK
-    sleep 30;
+scenario_change_network_recursive() {
+	keyevent ${KEY_TER} 5
+	keyevent ${KEY_BS} 5
+	keyevent ${KEY_BS4K} 5
 }
-
-scenario_exo_leak() {
-    ${prefix} am start -a com.google.android.exoplayer.demo.action.VIEW -d "file:///storage/emulated/0/testvid.ts"
-    sleep 210;
-    ${prefix} input keyevent KEYCODE_BACK
-    sleep 15;
-}
-
-scenario() {
-    echo "channel change to DT 11"
-    ${prefix} input keyevent KEYCODE_0 KEYCODE_1 KEYCODE_1;
-    sleep 10;
-
-    echo "channel change to BS 101"
-    ${prefix} input keyevent KEYCODE_1 KEYCODE_0 KEYCODE_1;
-    sleep 2;
-
-    echo "channel change to BS 101"
-    sleep 10;
-
-    echo "channel change to BS4K 101"
-    ${prefix} input keyevent KEYCODE_1 KEYCODE_0 KEYCODE_1;
-    sleep 2;
-    ${prefix} input keyevent KEYCODE_DPAD_DOWN KEYCODE_DPAD_DOWN KEYCODE_OK
-    sleep 10;
-
-    echo "channel change to CATV 604"
-    ${prefix} input keyevent KEYCODE_6 KEYCODE_0 KEYCODE_4;
-    sleep 10;
-}
-
 
 scenario_rec_play() {
-    ${prefix} input keyevent 201
-    sleep 2;
-    ${prefix} input keyevent KEYCODE_ENTER
-    sleep 1;
-    ${prefix} input keyevent KEYCODE_DPAD_RIGHT
-    sleep 1;
-    ${prefix} input keyevent KEYCODE_ENTER
-    sleep 5;
-    ${prefix} input keyevent HOME
-    sleep 8;
-}
-
-scenario_rec_play2() {
-    ${prefix} input keyevent KEYCODE_DPAD_CENTER 
-    sleep 1
-    ${prefix} input keyevent KEYCODE_DPAD_RIGHT
-    sleep 1
-    echo "REC Play Start"
-    ${prefix} input keyevent KEYCODE_DPAD_CENTER
-    sleep 3
-    echo "REC Play Stop"
-    ${prefix} input keyevent KEYCODE_BACK
-    sleep 1
+	keyevent ${KEY_REC_LIST} 2
+	keyevent KEYCODE_ENTER 1
+	keyevent KEYCODE_DPAD_RIGHT 1
+	keyevent KEYCODE_ENTER 5
+	keyevent HOME 8
 }
 
 scenario_sqe_scenario() {
@@ -191,6 +142,20 @@ scenario_sqe_scenario() {
     sleep 6
     ${prefix} input keyevent KEYCODE_1
     sleep 1144
+}
+
+
+############################# AGING related routines #######################################
+
+keyevent() {
+	${prefix} input keyevent $1
+	echo "sleep $2"
+	sleep $2
+}
+
+update_config() {
+    adb="adb -s ${ip}:5555"
+    prefix="${adb} shell"    
 }
 
 fetching_memory() {
