@@ -16,6 +16,14 @@ do_precondition() {
     ${prefix} setprop persist.alps.system.debug.log true
 }
 
+# Select sceanrio
+do_exec() {
+    scenario_monitoring
+	#scenario_change_network_recursive
+    #scenario_rec_play
+    #scenario_sqe_scenario
+}
+
 ################################## KEY DEFINITION ###################################################
 KEY_TER=194
 KEY_BS=193
@@ -25,15 +33,7 @@ KEY_REC_LIST=201
 KEY_REC=130
 KEY_STOP=86
 
-################################## INTERNAL SCEANRIO ################################################
-
-# execute secnario
-do_exec() {
-    scenario_monitoring
-	#scenario_change_network_recursive
-    #scenario_rec_play
-    #scenario_sqe_scenario
-}
+################################## SCEANRIO DEFINITION ################################################
 
 scenario_monitoring() {
     echo "Monitoring given package..."
