@@ -176,8 +176,10 @@ def handleTelegramChat(msg):
 			else:
 				bot.sendMessage(chat_id, result)	
 		elif '/getcrashlog' in command :
-			bot.sendMessage(chat_id, 'This command could take long time')
-			cmd = ['egrep', '-n25', 'beginning of crash|FATAL',  logDataPath]
+			if len(targetIp) < 9:
+				cmd = ['adb', 'shell', 'dumpsys', 'dropbox', '-p', 'system_app_crash']
+			else:
+				cmd = ['adb', '-s', targetIp+':5555', 'shell', 'dumpsys', 'dropbox', '-p', 'system_app_crash']
 			executeFromShellAndStore(cmd, './crashlog.txt')
 			try:
 				bot.sendDocument(chat_id, document=open('./crashlog.txt','rb'))
@@ -231,7 +233,7 @@ def handleTelegramChat(msg):
 				bot.sendMessage(chat_id, 'Could not generate bugreport')
 		elif '/getsuspicious' in command :
 			bot.sendMessage(chat_id, 'This command could take long time')
-			cmd = ['egrep', '-n', 'AudioFlinger could not create|no video decoders available', logDataPath]
+			cmd = ['egrep', '-n', 'AudioFlinger could not create|no video decoders available|AlpsExecutionPeriodEstimator', logDataPath]
 			szOutput = executeFromShellAndStore(cmd, './suspicious.txt')
 			try:
 				if szOutput > 49 * 1024 * 1024:
@@ -324,7 +326,7 @@ def monitorCrashHistory():
 	
 def monitorSuspicious():
 	global previousSzSuspicious
-	cmd = ['egrep', '-n', 'AudioFlinger could not create|no video decoders available', logDataPath]
+	cmd = ['egrep', '-n', 'AudioFlinger could not create|no video decoders available|AlpsExecutionPeriodEstimator', logDataPath]
 	szOutput = executeFromShellAndStore(cmd, '/tmp/suspicious_monitor.txt_' + str(os.getpid()))
 	print(str(previousSzSuspicious - szOutput))
 	if szOutput - previousSzSuspicious > 1 * 1024 * 1024 :
