@@ -13,6 +13,7 @@ selected_scenario=scenario_monitoring
 #selected_scenario=scenario_change_network_recursive
 #selected_scenario=scenario_rec_play
 #selected_scenario=scenario_sqe_scenario
+#selected_scenario=scenario_poweronoff
 
 # Before starting, below command will be executed once
 do_precondition() {
@@ -31,7 +32,7 @@ KEY_CATV=192
 KEY_REC_LIST=201
 KEY_REC=130
 KEY_STOP=86
-
+KEY_POWER=26
 ################################## SCEANRIO DEFINITION ################################################
 
 scenario_monitoring() {
@@ -46,12 +47,19 @@ scenario_change_network_recursive() {
 	keyevent ${KEY_CATV} 3
 }
 
+scenario_poweronoff() {
+	#poweroff
+	keyevent ${KEY_POWER} 2
+	#poweron
+	keyevent ${KEY_POWER} 2
+}
+
 scenario_rec_play() {
-	keyevent ${KEY_REC_LIST} 2
+	keyevent ${KEY_REC_LIST} 1
 	keyevent KEYCODE_ENTER 1
 	keyevent KEYCODE_DPAD_RIGHT 1
-	keyevent KEYCODE_ENTER 5
-	keyevent HOME 8
+	keyevent KEYCODE_ENTER 1
+	#keyevent HOME 1
 }
 
 scenario_sqe_scenario() {
