@@ -9,11 +9,12 @@ memory_monitoring_package="com.humaxdigital.corona.tvinput.jcom"
 keep_connect="no"
 
 # Select sceanrio
-selected_scenario=scenario_monitoring
+#selected_scenario=scenario_monitoring
 #selected_scenario=scenario_change_network_recursive
 #selected_scenario=scenario_rec_play
 #selected_scenario=scenario_sqe_scenario
 #selected_scenario=scenario_poweronoff
+selected_scenario=scenario_complex_action
 
 # Before starting, below command will be executed once
 do_precondition() {
@@ -32,6 +33,10 @@ KEY_CATV=192
 KEY_REC_LIST=201
 KEY_REC=130
 KEY_STOP=86
+KEY_EPG=172
+KEY_NETFLIX=135
+KEY_YOUTUBE=191
+KEY_HOME=3
 KEY_POWER=26
 ################################## SCEANRIO DEFINITION ################################################
 
@@ -44,14 +49,7 @@ scenario_change_network_recursive() {
 	keyevent ${KEY_TER} 3
 	keyevent ${KEY_BS} 3
 	keyevent ${KEY_BS4K} 3
-	keyevent ${KEY_CATV} 3
-}
-
-scenario_poweronoff() {
-	#poweroff
-	keyevent ${KEY_POWER} 2
-	#poweron
-	keyevent ${KEY_POWER} 2
+	#keyevent ${KEY_CATV} 3
 }
 
 scenario_rec_play() {
@@ -60,6 +58,35 @@ scenario_rec_play() {
 	keyevent KEYCODE_DPAD_RIGHT 1
 	keyevent KEYCODE_ENTER 1
 	#keyevent HOME 1
+}
+
+# EPG -> HOME -> Netflix -> Reclist-> Play -> Home -> Youtube -> 
+# Play -> RecList -> Play -> Netflix (wo back) -> HOME
+
+scenario_complex_action() {
+	keyevent ${KEY_EPG} 3
+	keyevent ${KEY_HOME} 2
+	keyevent ${KEY_NETFLIX} 10
+	keyevent ${KEY_REC_LIST} 3
+	keyevent KEYCODE_ENTER 2
+	keyevent KEYCODE_DPAD_RIGHT 1
+	keyevent KEYCODE_ENTER 3
+	keyevent ${KEY_HOME} 3
+	keyevent ${KEY_YOUTUBE} 5
+	keyevent KEYCODE_ENTER 3
+	keyevent ${KEY_REC_LIST} 2
+	keyevent KEYCODE_ENTER 2
+	keyevent KEYCODE_DPAD_RIGHT 1
+	keyevent KEYCODE_ENTER 1
+	keyevent ${KEY_NETFLIX} 2
+	keyevent ${KEY_HOME} 2
+}
+
+scenario_poweronoff() {
+	#poweroff
+	keyevent ${KEY_POWER} 2
+	#poweron
+	keyevent ${KEY_POWER} 4
 }
 
 scenario_sqe_scenario() {
