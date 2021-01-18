@@ -44,7 +44,8 @@ def draw_plot():
 	define_chart[3] = [binderTotal, 'Binder consumption (Total)', 'Time', 'The number of Binder', 'y']
 	define_chart[4] = [logdHeap, 'LogD NativeHeap consumption', 'Time', 'Heap(KB)', 'gray']
 	define_chart[5] = [bmemHeap, 'BMEM consumption % (PEAK)', 'Time', 'Ratio(%)', 'gray']
-	define_chart[6] = [logServiceCpu, 'LogService CPU usage', 'Time', 'Usage', 'gray']
+	#define_chart[6] = [logServiceCpu, 'LogService CPU usage', 'Time', 'Usage', 'gray']
+	define_chart[6] = [ioTop, 'IOTOP load', 'Time', 'KiB/S', 'gray']
 		
 	fig, axs = plt.subplots(len(define_chart), 1)
 	fig.set_figwidth(10)
@@ -75,6 +76,8 @@ def lineParse(line):
 				bmemHeap.append(int(splitLine[1]))
 			if splitLine[0] == 'LogService CPU':
 				logServiceCpu.append(float(splitLine[1]))
+			if splitLine[0] == 'Iotop load ':
+				ioTop.append(int(splitLine[1]))
 	except ValueError:
 		pass
 		#ignore
@@ -87,6 +90,7 @@ def readFile(inputFile):
 	logdHeap.clear()
 	bmemHeap.clear()
 	logServiceCpu.clear()
+	ioTop.clear()
 	with open(inputFile,encoding='UTF-8') as f:
 		fileContent = f.readlines()
 		fileContent = [x.strip() for x in fileContent]
@@ -110,6 +114,7 @@ binderSystem=[]
 logdHeap=[]
 bmemHeap=[]
 logServiceCpu=[]
+ioTop=[]
 
 
 '''

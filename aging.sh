@@ -9,12 +9,13 @@ memory_monitoring_package="com.humaxdigital.corona.tvinput.jcom"
 keep_connect="no"
 
 # Select sceanrio
-#selected_scenario=scenario_monitoring
+selected_scenario=scenario_monitoring
 #selected_scenario=scenario_change_network_recursive
 #selected_scenario=scenario_rec_play
 #selected_scenario=scenario_sqe_scenario
 #selected_scenario=scenario_poweronoff
-selected_scenario=scenario_complex_action
+#selected_scenario=scenario_complex_action
+#selected_scenario=scenario_shortcut_repeat
 
 # Before starting, below command will be executed once
 do_precondition() {
@@ -36,6 +37,8 @@ KEY_STOP=86
 KEY_EPG=172
 KEY_NETFLIX=135
 KEY_YOUTUBE=191
+KEY_TVER=136
+KEY_FAVORITE=137
 KEY_HOME=3
 KEY_POWER=26
 ################################## SCEANRIO DEFINITION ################################################
@@ -62,17 +65,16 @@ scenario_rec_play() {
 
 # EPG -> HOME -> Netflix -> Reclist-> Play -> Home -> Youtube -> 
 # Play -> RecList -> Play -> Netflix (wo back) -> HOME
-
 scenario_complex_action() {
 	keyevent ${KEY_EPG} 3
 	keyevent ${KEY_HOME} 2
-	keyevent ${KEY_NETFLIX} 10
+	keyevent ${KEY_NETFLIX} 4
 	keyevent ${KEY_REC_LIST} 3
 	keyevent KEYCODE_ENTER 2
 	keyevent KEYCODE_DPAD_RIGHT 1
 	keyevent KEYCODE_ENTER 3
 	keyevent ${KEY_HOME} 3
-	keyevent ${KEY_YOUTUBE} 5
+	keyevent ${KEY_YOUTUBE} 4
 	keyevent KEYCODE_ENTER 3
 	keyevent ${KEY_REC_LIST} 2
 	keyevent KEYCODE_ENTER 2
@@ -80,6 +82,14 @@ scenario_complex_action() {
 	keyevent KEYCODE_ENTER 1
 	keyevent ${KEY_NETFLIX} 2
 	keyevent ${KEY_HOME} 2
+}
+
+scenario_shortcut_repeat() {
+	keyevent ${KEY_NETFLIX} 3
+	keyevent ${KEY_YOUTUBE} 3
+	keyevent KEYCODE_ENTER 3
+	keyevent ${KEY_TVER} 3
+	keyevent ${KEY_FAVORITE} 6
 }
 
 scenario_poweronoff() {
@@ -220,9 +230,11 @@ fetching_memory() {
         logd_mem=$(${prefix} dumpsys meminfo logd | grep "Native Heap:" | cut -c 25-)
         bmem=$(${prefix} cat /proc/brcm/core | grep "MAIN" | cut -f 2 -d '%' | tr -d ' ')
         logservice_cpu=$(${prefix} top -b -n 1 | grep com.humaxdigital.atv.logservice | sed '/grep/d' | awk '{ print $9}')
+		iotop=$(${prefix} iotop -P -n 1 | grep TOTAL |  awk '{ print $4 }')
         echo "Logd NatvHeap:${logd_mem}" >> ${mem_target}
         echo "Bmem Peak:${bmem}" >> ${mem_target}
         echo "LogService CPU:${logservice_cpu}" >> ${mem_target}
+		echo "Iotop load : ${iotop}" >> ${mem_target}
         echo "" >> ${mem_target}
         sleep ${memory_fetching_interval};
     done
